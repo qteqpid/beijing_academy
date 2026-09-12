@@ -20,10 +20,24 @@
     body{
       font-family:"Microsoft Yahei","PingFang SC",sans-serif;
       color:var(--ink);
-      background:var(--paper);
+      background:
+        radial-gradient(circle at 10% 16%,rgba(181,0,24,.06),transparent 24%),
+        radial-gradient(circle at 84% 28%,rgba(16,120,140,.05),transparent 26%),
+        var(--paper);
     }
     a{color:inherit;text-decoration:none}
     img{display:block;max-width:100%}
+    .scroll-progress{
+      position:fixed;
+      left:0;
+      top:0;
+      width:0;
+      height:4px;
+      background:linear-gradient(90deg,var(--red),#ff3154);
+      z-index:100;
+      box-shadow:0 0 24px rgba(225,25,45,.45);
+      pointer-events:none;
+    }
 
     .top-rule{
       height:5px;
@@ -35,6 +49,10 @@
       position:sticky;
       top:0;
       z-index:20;
+      transition:box-shadow .28s ease;
+    }
+    body.is-scrolled .site-header{
+      box-shadow:0 18px 46px rgba(16,24,40,.12);
     }
     .header-inner{
       width:min(1180px,calc(100% - 48px));
@@ -75,6 +93,18 @@
       background:var(--cream);
       border-bottom:1px solid var(--line);
       padding:76px 0 56px;
+      position:relative;
+      overflow:hidden;
+    }
+    .page-hero::before{
+      content:"北京中学";
+      position:absolute;
+      right:-26px;
+      top:6px;
+      font-size:116px;
+      font-weight:900;
+      color:rgba(181,0,24,.055);
+      letter-spacing:.02em;
     }
     .page-hero-inner{
       width:min(1180px,calc(100% - 48px));
@@ -83,6 +113,8 @@
       grid-template-columns:minmax(0,1fr) 260px;
       gap:60px;
       align-items:end;
+      position:relative;
+      z-index:1;
     }
     .breadcrumb{
       display:flex;
@@ -107,6 +139,9 @@
       line-height:1.12;
       letter-spacing:-.02em;
       font-weight:900;
+      opacity:0;
+      transform:translateY(22px);
+      animation:riseIn .72s ease .1s forwards;
     }
     .hero-meta{
       border-left:5px solid var(--red);
@@ -114,6 +149,9 @@
       color:#444;
       font-weight:800;
       line-height:1.9;
+      opacity:0;
+      transform:translateY(18px);
+      animation:riseIn .72s ease .22s forwards;
     }
     .hero-meta span{
       display:block;
@@ -137,12 +175,28 @@
       object-fit:cover;
       margin-bottom:44px;
       background:#ddd;
+      box-shadow:22px 22px 0 var(--red);
+      transition:transform .42s ease,box-shadow .42s ease,filter .42s ease;
+    }
+    .lead-image:hover{
+      transform:translate(-6px,-6px);
+      box-shadow:34px 34px 0 var(--red);
+      filter:saturate(1.05) contrast(1.04);
     }
     .article-content{
       font-size:18px;
       line-height:2;
     }
     .article-content p{margin-bottom:24px}
+    .article-content > *{
+      opacity:0;
+      transform:translateY(20px);
+      transition:opacity .68s ease,transform .68s ease;
+    }
+    .article-content > *.in-view{
+      opacity:1;
+      transform:translateY(0);
+    }
     .article-content h2{
       margin:48px 0 18px;
       font-size:30px;
@@ -184,8 +238,12 @@
       color:#333;
       font-weight:800;
       line-height:1.5;
+      transition:color .22s ease,transform .22s ease;
     }
-    .side-list a:hover{color:var(--red)}
+    .side-list a:hover{
+      color:var(--red);
+      transform:translateX(6px);
+    }
     .back-link{
       display:inline-flex;
       margin-top:28px;
@@ -193,7 +251,9 @@
       font-weight:900;
       border-bottom:2px solid var(--red);
       padding-bottom:5px;
+      transition:transform .22s ease;
     }
+    .back-link:hover{transform:translateX(-6px)}
     .footer{
       background:#171717;
       color:#fff;
@@ -209,6 +269,13 @@
     }
     .footer img{width:160px;background:#fff;padding:6px}
     .footer p{color:rgba(255,255,255,.74);margin-top:14px}
+
+    @keyframes riseIn{
+      to{
+        opacity:1;
+        transform:translateY(0);
+      }
+    }
 
     @media (max-width:900px){
       .header-inner,
@@ -229,6 +296,7 @@
   </style>
 </head>
 <body>
+  <div class="scroll-progress" aria-hidden="true"></div>
   <div class="top-rule"></div>
   <header class="site-header">
     <div class="header-inner">
@@ -355,6 +423,34 @@
       li.innerHTML = `<a href="news-detail.html?id=${key}">${item.title}</a>`;
       related.appendChild(li);
     });
+
+    const scrollProgress = document.querySelector(".scroll-progress");
+    const updateScrollEffects = ()=>{
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = maxScroll > 0 ? (window.scrollY / maxScroll) * 100 : 0;
+      if (scrollProgress) scrollProgress.style.width = `${progress}%`;
+      document.body.classList.toggle("is-scrolled", window.scrollY > 24);
+    };
+    updateScrollEffects();
+    window.addEventListener("scroll", updateScrollEffects, {passive:true});
+
+    const articleBlocks = document.querySelectorAll(".article-content > *");
+    if ("IntersectionObserver" in window) {
+      const observer = new IntersectionObserver((entries)=>{
+        entries.forEach(entry=>{
+          if (entry.isIntersecting) {
+            entry.target.classList.add("in-view");
+            observer.unobserve(entry.target);
+          }
+        });
+      }, {threshold:.2});
+      articleBlocks.forEach((block,index)=>{
+        block.style.transitionDelay = `${Math.min(index * 70, 420)}ms`;
+        observer.observe(block);
+      });
+    } else {
+      articleBlocks.forEach(block=>block.classList.add("in-view"));
+    }
   </script>
 </body>
 </html>
