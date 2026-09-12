@@ -1012,6 +1012,7 @@
   </style>
 </head>
 <body>
+  <div class="scroll-progress" aria-hidden="true"></div>
   <header class="school-header">
     <div class="school-topbar">
       <div>欢迎访问北中观察站官方网站</div>
@@ -1226,6 +1227,16 @@
   </footer>
 
   <script>
+    const scrollProgress = document.querySelector('.scroll-progress');
+    const updateScrollEffects = ()=>{
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = maxScroll > 0 ? (window.scrollY / maxScroll) * 100 : 0;
+      if (scrollProgress) scrollProgress.style.width = `${progress}%`;
+      document.body.classList.toggle('is-scrolled', window.scrollY > 24);
+    };
+    updateScrollEffects();
+    window.addEventListener('scroll', updateScrollEffects, {passive:true});
+
     const schoolHeroSlides = document.querySelectorAll('.school-hero-slide');
     const schoolHeroDots = document.querySelectorAll('.school-progress button');
     const schoolHeroPause = document.querySelector('.school-pause');
@@ -1268,6 +1279,18 @@
     }
 
     startSchoolHeroCarousel();
+
+    document.querySelectorAll('.news-card').forEach(card=>{
+      card.addEventListener('pointermove',(event)=>{
+        const rect = card.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width - .5;
+        const y = (event.clientY - rect.top) / rect.height - .5;
+        card.style.transform = `translateY(-10px) rotateX(${(-y * 3).toFixed(2)}deg) rotateY(${(x * 3).toFixed(2)}deg)`;
+      });
+      card.addEventListener('pointerleave',()=>{
+        card.style.transform = '';
+      });
+    });
 
     const slides = document.querySelectorAll('.hero-slide');
     const dots = document.querySelectorAll('.hero-dot');
