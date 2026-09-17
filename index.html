@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>北京中学 | Beijing Academy</title>
+  <title>北中观察站 | 学生自主研发网站</title>
   <style>
     :root{
       --red:#b50018;
@@ -14,6 +14,8 @@
       --paper:#fff;
       --soft:#f7f7f7;
       --cream:#fbfaf7;
+      --shadow:0 24px 70px rgba(18,24,40,.10);
+      --shadow-strong:0 34px 90px rgba(18,24,40,.16);
     }
     *{box-sizing:border-box;margin:0;padding:0}
     html{scroll-behavior:smooth}
@@ -41,9 +43,20 @@
     }
 
     .school-header{
-      background:linear-gradient(90deg,#9f1116,var(--red) 48%,#ed3338);
+      background:linear-gradient(90deg,#8b0011,var(--red) 52%,#d82230);
       color:#fff;
       border-bottom:1px solid rgba(255,255,255,.16);
+      position:relative;
+      overflow:hidden;
+    }
+    .school-header::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(110deg,transparent 0 36%,rgba(255,255,255,.16) 48%,transparent 60%);
+      transform:translateX(-70%);
+      animation:topSheen 7s ease-in-out infinite;
+      pointer-events:none;
     }
     .school-topbar{
       width:min(1200px,calc(100% - 48px));
@@ -55,6 +68,8 @@
       gap:20px;
       font-size:14px;
       letter-spacing:.02em;
+      position:relative;
+      z-index:1;
     }
     .school-nav{
       background:rgba(255,255,255,.94);
@@ -82,12 +97,16 @@
     .school-logo img{
       width:180px;
       height:auto;
+      transition:transform .24s ease;
+    }
+    .school-logo:hover img{
+      transform:translateY(-2px);
     }
     .school-tabs{
       display:flex;
       align-items:center;
       justify-content:flex-end;
-      gap:34px;
+      gap:30px;
       color:#344054;
       font-size:16px;
       font-weight:700;
@@ -96,7 +115,9 @@
     .school-tabs a{
       padding:31px 0;
       position:relative;
+      transition:color .22s ease;
     }
+    .school-tabs a:hover{color:var(--red)}
     .school-tabs a::after{
       content:"";
       position:absolute;
@@ -122,6 +143,7 @@
       align-items:center;
       position:relative;
       overflow:hidden;
+      isolation:isolate;
     }
     .school-hero-slider,
     .school-hero-slide{
@@ -158,11 +180,23 @@
       opacity:.42;
       z-index:1;
     }
+    .school-hero::after{
+      content:"";
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:0;
+      height:138px;
+      background:linear-gradient(180deg,transparent,rgba(0,0,0,.34));
+      z-index:1;
+      pointer-events:none;
+    }
     .school-hero-inner{
       width:min(1200px,calc(100% - 48px));
       margin:0 auto;
       position:relative;
       z-index:2;
+      padding-bottom:34px;
     }
     .school-kicker{
       display:inline-flex;
@@ -176,6 +210,7 @@
       opacity:0;
       transform:translateY(18px);
       animation:riseIn .78s ease .12s forwards;
+      backdrop-filter:blur(16px);
     }
     .school-title{
       max-width:800px;
@@ -232,6 +267,27 @@
       opacity:0;
       transform:translateY(18px);
       animation:riseIn .78s ease .42s forwards;
+      display:inline-block;
+      padding:0 0 14px;
+      border-bottom:3px solid rgba(255,255,255,.72);
+    }
+    .hero-note{
+      margin-top:26px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      opacity:0;
+      transform:translateY(18px);
+      animation:riseIn .78s ease .56s forwards;
+    }
+    .hero-note span{
+      border:1px solid rgba(255,255,255,.25);
+      background:rgba(255,255,255,.12);
+      backdrop-filter:blur(14px);
+      padding:9px 12px;
+      font-size:13px;
+      font-weight:800;
+      letter-spacing:.04em;
     }
     .school-hero-controls{
       position:absolute;
@@ -313,6 +369,10 @@
         opacity:1;
         transform:translateY(0);
       }
+    }
+    @keyframes topSheen{
+      0%,42%{transform:translateX(-80%)}
+      68%,100%{transform:translateX(120%)}
     }
     @keyframes softPulse{
       0%,100%{box-shadow:0 28px 80px rgba(0,0,0,.16)}
@@ -609,12 +669,12 @@
       display:grid;
       grid-template-columns:repeat(4,1fr);
       background:#fff;
-      box-shadow:0 28px 80px rgba(0,0,0,.16);
-      animation:softPulse 5.5s ease-in-out infinite;
+      box-shadow:var(--shadow-strong);
+      border:1px solid rgba(231,231,231,.8);
     }
     .quick-link{
-      min-height:132px;
-      padding:28px;
+      min-height:138px;
+      padding:30px 28px;
       border-right:1px solid var(--line);
       position:relative;
       overflow:hidden;
@@ -630,8 +690,10 @@
       transition:opacity .28s ease;
     }
     .quick-link:hover{
-      transform:translateY(-8px);
+      transform:translateY(-10px);
       background:#fffafa;
+      z-index:2;
+      box-shadow:0 22px 48px rgba(18,24,40,.10);
     }
     .quick-link:hover::before{opacity:1}
     .quick-link span{
@@ -644,7 +706,8 @@
     .quick-link strong{
       display:block;
       margin-top:12px;
-      font-size:22px;
+      font-size:24px;
+      letter-spacing:.01em;
       position:relative;
     }
     .quick-link::after{
@@ -661,16 +724,26 @@
 
     section{
       width:min(1180px,calc(100% - 40px));
-      margin:0 auto 90px;
+      margin:0 auto 104px;
     }
     .section-head{
       display:flex;
       align-items:end;
       justify-content:space-between;
       gap:30px;
-      border-top:6px solid var(--red);
-      padding-top:24px;
+      border-top:1px solid var(--line);
+      padding-top:30px;
       margin-bottom:34px;
+      position:relative;
+    }
+    .section-head::before{
+      content:"";
+      position:absolute;
+      left:0;
+      top:-3px;
+      width:120px;
+      height:6px;
+      background:var(--red);
     }
     .section-head em{
       display:block;
@@ -683,8 +756,9 @@
       margin-bottom:10px;
     }
     .section-head h2{
-      font-size:42px;
+      font-size:46px;
       line-height:1.1;
+      letter-spacing:-.02em;
     }
     .more{
       color:var(--red);
@@ -692,7 +766,9 @@
       border-bottom:2px solid var(--red);
       padding-bottom:5px;
       white-space:nowrap;
+      transition:transform .22s ease;
     }
+    .more:hover{transform:translateX(6px)}
     .news-grid{
       display:grid;
       grid-template-columns:1.4fr 1fr 1fr;
@@ -707,6 +783,7 @@
       color:inherit;
       text-decoration:none;
       position:relative;
+      box-shadow:0 12px 38px rgba(18,24,40,.055);
     }
     .news-card::after{
       content:"";
@@ -719,7 +796,7 @@
     }
     .news-card:hover{
       transform:translateY(-10px);
-      box-shadow:0 28px 70px rgba(0,0,0,.14);
+      box-shadow:var(--shadow-strong);
     }
     .news-card:hover::after{transform:translateX(120%)}
     .news-card:focus-visible{
@@ -748,6 +825,14 @@
       background-image:url("bjzx-news-3.jpg");
     }
     .news-body{padding:24px}
+    .news-body::before{
+      content:"";
+      display:block;
+      width:34px;
+      height:4px;
+      background:var(--red);
+      margin-bottom:18px;
+    }
     .news-body time{
       color:var(--red);
       font-size:13px;
@@ -767,9 +852,10 @@
 
     .about-band{
       width:100%;
-      background:var(--cream);
-      padding:92px 0;
-      margin-bottom:90px;
+      background:
+        linear-gradient(180deg,#fff 0%,var(--cream) 100%);
+      padding:104px 0;
+      margin-bottom:104px;
       position:relative;
       overflow:hidden;
     }
@@ -792,9 +878,10 @@
       position:relative;
     }
     .about-copy h2{
-      font-size:54px;
+      font-size:58px;
       line-height:1.08;
       margin-bottom:24px;
+      letter-spacing:-.03em;
     }
     .about-copy p{
       color:#4b4b4b;
@@ -805,7 +892,7 @@
     .about-photo{
       min-height:420px;
       background:url("bjzx-about.jpg") center/cover no-repeat;
-      box-shadow:22px 22px 0 var(--red);
+      box-shadow:22px 22px 0 var(--red),0 26px 70px rgba(18,24,40,.14);
       transition:transform .45s ease,box-shadow .45s ease;
     }
     .about-photo:hover{
@@ -822,6 +909,7 @@
     .stat{
       background:#fff;
       padding:20px;
+      border:1px solid rgba(255,255,255,.8);
     }
     .stat strong{
       color:var(--red);
@@ -849,11 +937,13 @@
       display:flex;
       align-items:flex-end;
       padding:28px;
-      transition:transform .32s ease,filter .32s ease,background-size .45s ease;
+      box-shadow:0 18px 50px rgba(18,24,40,.10);
+      transition:transform .32s ease,filter .32s ease,box-shadow .32s ease;
     }
     .tour-card:hover{
       transform:translateY(-8px);
       filter:saturate(1.08) contrast(1.04);
+      box-shadow:var(--shadow-strong);
     }
     .tour-card:nth-child(1){background-image:url("bjzx-tour-campus.jpg")}
     .tour-card:nth-child(2){
@@ -889,11 +979,35 @@
       gap:24px;
     }
     .event{
-      border-top:1px solid var(--line);
-      padding:24px 0;
+      border:1px solid var(--line);
+      background:#fff;
+      padding:26px;
       display:grid;
       grid-template-columns:90px 1fr;
       gap:24px;
+      position:relative;
+      overflow:hidden;
+      transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease;
+    }
+    .event::before{
+      content:"";
+      position:absolute;
+      left:0;
+      top:0;
+      bottom:0;
+      width:5px;
+      background:var(--red);
+      transform:scaleY(.28);
+      transform-origin:top;
+      transition:transform .28s ease;
+    }
+    .event:hover{
+      transform:translateY(-7px);
+      box-shadow:var(--shadow);
+      border-color:rgba(181,0,24,.24);
+    }
+    .event:hover::before{
+      transform:scaleY(1);
     }
     .event-date{
       color:var(--red);
@@ -919,22 +1033,30 @@
     }
 
     .footer{
-      background:#1b1b1b;
+      background:
+        linear-gradient(135deg,#111 0%,#1b1b1b 58%,#27070b 100%);
       color:#fff;
-      padding:58px 0 28px;
+      padding:64px 0 30px;
+      position:relative;
+      overflow:hidden;
+    }
+    .footer::before{
+      content:"北中观察站";
+      position:absolute;
+      right:-24px;
+      top:12px;
+      font-size:96px;
+      font-weight:900;
+      color:rgba(255,255,255,.035);
     }
     .footer-inner{
       width:min(1180px,calc(100% - 40px));
       margin:0 auto;
       display:grid;
-      grid-template-columns:1.1fr 2fr;
+      grid-template-columns:1fr;
       gap:50px;
-    }
-    .footer img{
-      width:230px;
-      background:#fff;
-      padding:10px;
-      margin-bottom:24px;
+      position:relative;
+      z-index:1;
     }
     .footer-nav{
       display:grid;
@@ -951,6 +1073,11 @@
       color:#bbb;
       margin:10px 0;
       font-size:14px;
+      transition:color .22s ease,transform .22s ease;
+    }
+    .footer li:hover{
+      color:#fff;
+      transform:translateX(4px);
     }
     .copyright{
       width:min(1180px,calc(100% - 40px));
@@ -1015,8 +1142,8 @@
   <div class="scroll-progress" aria-hidden="true"></div>
   <header class="school-header">
     <div class="school-topbar">
-      <div>欢迎访问北中观察站官方网站</div>
-      <div>联系电话：010-20260303 | 邮箱：observe@beizhong.edu.cn</div>
+      <div>北中观察站 | 学生自主研发的网站</div>
+      <div>非官方校园内容展示 · 不代表北京中学官方信息发布</div>
     </div>
   </header>
 
@@ -1045,6 +1172,11 @@
         <div class="school-kicker">CAMPUS OBSERVATORY · 2026</div>
         <div class="school-title">北中观察站</div>
         <div class="school-motto">世界因我更美好</div>
+        <div class="hero-note">
+          <span>学生自主研发</span>
+          <span>非官方校园内容展示</span>
+          <span>Campus Observation</span>
+        </div>
       </div>
       <div class="school-hero-controls" aria-label="首屏轮播控制">
         <a class="school-read-more" href="#about">Read More</a>
@@ -1105,7 +1237,7 @@
         <div class="about-copy">
           <h2>让世界因我更美好</h2>
           <p>“世界因我更美好”是北京中学的校训。学校遵循“国际化、现代化、高品质”的办学定位，致力于办成一所具有北京风格、中国气质与世界胸怀的现代学校。</p>
-          <p>在课程、教师发展、学生成长和国际交流中，北京中学持续探索面向未来的教育形态。</p>
+          <p>在课程建设、学生成长和国际交流中，北京中学持续探索面向未来的教育形态。</p>
           <div class="stat-row">
             <div class="stat"><strong>2013</strong><span>建校年份</span></div>
             <div class="stat"><strong>12</strong><span>贯通成长视野</span></div>
@@ -1200,10 +1332,6 @@
 
   <footer class="footer">
     <div class="footer-inner">
-      <div>
-        <img src="bjzx-logo.jpg" alt="北京中学 Beijing Academy">
-        <p>校训：世界因我更美好</p>
-      </div>
       <div class="footer-nav">
         <div>
           <h4>学校概况</h4>
@@ -1211,7 +1339,7 @@
         </div>
         <div>
           <h4>课程教学</h4>
-          <ul><li>课程体系</li><li>教师频道</li><li>教学研究</li></ul>
+          <ul><li>课程体系</li><li>项目学习</li><li>教学研究</li></ul>
         </div>
         <div>
           <h4>校园生活</h4>
@@ -1223,7 +1351,7 @@
         </div>
       </div>
     </div>
-    <div class="copyright">北京中学版权所有 ©2026 | 京ICP备13051651号-1</div>
+    <div class="copyright">北中观察站 ©2026 | 学生自主研发网站 · 非官方学习展示页面</div>
   </footer>
 
   <script>

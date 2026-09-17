@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>最新动态 | 北京中学</title>
+  <title>最新动态 | 北中观察站</title>
   <style>
     :root{
       --red:#b50018;
@@ -14,6 +14,8 @@
       --paper:#fff;
       --soft:#f6f6f6;
       --cream:#fbfaf7;
+      --shadow:0 24px 70px rgba(18,24,40,.10);
+      --shadow-strong:0 34px 90px rgba(18,24,40,.16);
     }
     *{box-sizing:border-box;margin:0;padding:0}
     html{scroll-behavior:smooth}
@@ -42,6 +44,16 @@
     .top-rule{
       height:5px;
       background:linear-gradient(90deg,#8b0011,var(--red),#ff394f);
+      position:relative;
+      overflow:hidden;
+    }
+    .top-rule::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(110deg,transparent 0 34%,rgba(255,255,255,.22) 48%,transparent 62%);
+      transform:translateX(-70%);
+      animation:topSheen 7s ease-in-out infinite;
     }
     .site-header{
       background:#fff;
@@ -64,6 +76,8 @@
       gap:40px;
     }
     .logo img{width:180px;height:auto}
+    .logo img{transition:transform .24s ease}
+    .logo:hover img{transform:translateY(-2px)}
     .nav{
       display:flex;
       gap:34px;
@@ -90,7 +104,8 @@
     .nav a.active::after{width:100%}
 
     .page-hero{
-      background:var(--cream);
+      background:
+        linear-gradient(180deg,#fff 0%,var(--cream) 100%);
       border-bottom:1px solid var(--line);
       padding:76px 0 56px;
       position:relative;
@@ -142,6 +157,7 @@
       opacity:0;
       transform:translateY(22px);
       animation:riseIn .72s ease .1s forwards;
+      text-wrap:balance;
     }
     .hero-meta{
       border-left:5px solid var(--red);
@@ -175,7 +191,7 @@
       object-fit:cover;
       margin-bottom:44px;
       background:#ddd;
-      box-shadow:22px 22px 0 var(--red);
+      box-shadow:22px 22px 0 var(--red),0 26px 70px rgba(18,24,40,.14);
       transition:transform .42s ease,box-shadow .42s ease,filter .42s ease;
     }
     .lead-image:hover{
@@ -186,6 +202,10 @@
     .article-content{
       font-size:18px;
       line-height:2;
+      background:#fff;
+      border:1px solid var(--line);
+      padding:38px 42px;
+      box-shadow:0 18px 54px rgba(18,24,40,.065);
     }
     .article-content p{margin-bottom:24px}
     .article-content > *{
@@ -212,14 +232,31 @@
       font-size:24px;
       line-height:1.65;
       font-weight:900;
+      position:relative;
+      overflow:hidden;
+    }
+    .article-content blockquote::after{
+      content:"";
+      position:absolute;
+      right:-40px;
+      bottom:-40px;
+      width:120px;
+      height:120px;
+      border:22px solid rgba(181,0,24,.08);
+      border-radius:50%;
     }
     .side-panel{
       position:sticky;
       top:116px;
       border-top:6px solid var(--red);
       background:#fff;
-      box-shadow:0 24px 64px rgba(16,24,40,.09);
+      box-shadow:var(--shadow);
       padding:28px;
+      transition:transform .28s ease,box-shadow .28s ease;
+    }
+    .side-panel:hover{
+      transform:translateY(-4px);
+      box-shadow:var(--shadow-strong);
     }
     .side-panel h3{
       font-size:22px;
@@ -255,19 +292,32 @@
     }
     .back-link:hover{transform:translateX(-6px)}
     .footer{
-      background:#171717;
+      background:
+        linear-gradient(135deg,#111 0%,#1b1b1b 58%,#27070b 100%);
       color:#fff;
       padding:44px 0 24px;
+      position:relative;
+      overflow:hidden;
+    }
+    .footer::before{
+      content:"北中观察站";
+      position:absolute;
+      right:-18px;
+      top:0;
+      font-size:88px;
+      font-weight:900;
+      color:rgba(255,255,255,.035);
     }
     .footer-inner{
       width:min(1180px,calc(100% - 48px));
       margin:0 auto;
       display:flex;
-      justify-content:space-between;
+      justify-content:flex-start;
       gap:32px;
       align-items:center;
+      position:relative;
+      z-index:1;
     }
-    .footer img{width:160px;background:#fff;padding:6px}
     .footer p{color:rgba(255,255,255,.74);margin-top:14px}
 
     @keyframes riseIn{
@@ -275,6 +325,10 @@
         opacity:1;
         transform:translateY(0);
       }
+    }
+    @keyframes topSheen{
+      0%,42%{transform:translateX(-80%)}
+      68%,100%{transform:translateX(120%)}
     }
 
     @media (max-width:900px){
@@ -351,11 +405,7 @@
 
   <footer class="footer">
     <div class="footer-inner">
-      <div>
-        <img src="bjzx-logo.jpg" alt="北京中学 Beijing Academy">
-        <p>校训：世界因我更美好</p>
-      </div>
-      <p>北京中学版权所有 ©2026</p>
+      <p>北中观察站 ©2026 | 学生自主研发网站 · 非官方学习展示页面</p>
     </div>
   </footer>
 
@@ -368,11 +418,11 @@
         image:"bjzx-news-1.jpg",
         body:`
           <p>北京中学科技分校持续推进面向未来的贯通培养实验，围绕科学素养、创新表达、综合实践与学生发展支持，构建更具连续性的成长路径。</p>
-          <p>本年度项目坚持公开、公平、公正原则，结合学生综合表现与项目培养方向，完成相关录取工作。后续安排将通过学校官方渠道发布，请相关家庭保持关注。</p>
+          <p>本年度项目坚持公开、公平、公正原则，结合学生综合表现与项目培养方向，完成相关录取工作。后续安排请以学校正式发布的信息为准。</p>
           <h2>培养方向</h2>
           <p>项目关注学生在真实问题中的学习能力，通过科学探究、跨学科项目、阅读表达和社会实践，帮助学生形成稳定的学习方法与开阔的公共视野。</p>
           <blockquote>以学生成长为中心，让每一次学习都面向真实世界。</blockquote>
-          <p>学校将继续完善课程衔接、导师支持和校园资源配置，为学生提供高质量、现代化的学习环境。</p>
+          <p>学校将继续完善课程衔接、学习支持和校园资源配置，为学生提供高质量、现代化的学习环境。</p>
         `
       },
       "2":{
@@ -395,7 +445,7 @@
         category:"Research / 教学研究",
         image:"bjzx-news-3.jpg",
         body:`
-          <p>北京中学组织开展主题教育与校园实践活动，引导师生在校园空间中观察、记录、讨论与表达，形成面向真实生活的学习成果。</p>
+          <p>北京中学组织开展主题教育与校园实践活动，鼓励学生在校园空间中观察、记录、讨论与表达，形成面向真实生活的学习成果。</p>
           <p>活动围绕校园文化、公共责任、科学观察和协作表达展开，鼓励学生从日常经验出发，提出问题、收集材料、完成展示。</p>
           <h2>在真实任务中学习</h2>
           <p>学校通过项目化学习和跨学科协作，帮助学生把课堂知识连接到真实情境，让学习从“知道”走向“做到”。</p>
@@ -409,7 +459,7 @@
     const id = articles[params.get("id")] ? params.get("id") : "1";
     const article = articles[id];
 
-    document.title = `${article.title} | 北京中学`;
+    document.title = `${article.title} | 北中观察站`;
     document.getElementById("breadcrumb-title").textContent = article.title;
     document.getElementById("article-category").textContent = article.category;
     document.getElementById("article-title").textContent = article.title;
