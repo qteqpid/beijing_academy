@@ -1,0 +1,59 @@
+[
+  {
+    "id": "demo-1",
+    "author": "北中观察员",
+    "title": "论坛栏目更新建议征集",
+    "content": "欢迎围绕校园导览、社团展示、学习经验和活动记录提出建议。[思考]",
+    "category": "suggestions",
+    "ownerId": "",
+    "likedBy": [
+      "legacy-like-demo-1-0",
+      "legacy-like-demo-1-1",
+      "legacy-like-demo-1-2",
+      "legacy-like-demo-1-3",
+      "legacy-like-demo-1-4",
+      "legacy-like-demo-1-5"
+    ],
+    "likes": 6,
+    "favoritedBy": [],
+    "favorites": 0,
+    "reports": 0,
+    "reportedBy": [],
+    "createdAt": "2026-09-18 18:20",
+    "replies": [
+      {
+        "id": "reply-demo-1",
+        "author": "同学A",
+        "content": "社团展示可以补充每个社团的招新说明。[点赞]",
+        "createdAt": "2026-09-18 18:31"
+      },
+      {
+        "id": "reply-demo-2",
+        "author": "同学B",
+        "content": "校园导览也很重要，新同学会用得上。",
+        "createdAt": "2026-09-18 18:42"
+      }
+    ]
+  },
+  {
+    "id": "demo-2",
+    "author": "课程记录小组",
+    "title": "项目学习成果可以怎么展示？",
+    "content": "项目成果可采用网页、海报、地图、访谈整理或短视频脚本等形式。关键是写清楚资料来源和修改过程。[星星眼]",
+    "category": "study",
+    "ownerId": "",
+    "likedBy": [
+      "legacy-like-demo-2-0",
+      "legacy-like-demo-2-1",
+      "legacy-like-demo-2-2",
+      "legacy-like-demo-2-3"
+    ],
+    "likes": 4,
+    "favoritedBy": [],
+    "favorites": 0,
+    "reports": 0,
+    "reportedBy": [],
+    "createdAt": "2026-09-18 19:05",
+    "replies": []
+  }
+]

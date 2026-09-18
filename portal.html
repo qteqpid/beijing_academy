@@ -1,0 +1,3201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>北中观察站</title>
+  <link rel="icon" href="bjzx-favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="bjzx-favicon.png">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    :root{
+      --red:#b50018;
+      --red-2:#e1192d;
+      --ink:#151515;
+      --muted:#666;
+      --line:#e7e7e7;
+      --paper:#fff;
+      --soft:#f7f7f7;
+      --cream:#fbfaf7;
+      --shadow:0 24px 70px rgba(18,24,40,.10);
+      --shadow-strong:0 34px 90px rgba(18,24,40,.16);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{
+      font-family:"Microsoft Yahei","PingFang SC",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 12% 18%,rgba(181,0,24,.06),transparent 26%),
+        radial-gradient(circle at 86% 36%,rgba(16,120,140,.055),transparent 28%),
+        var(--paper);
+    }
+    a{color:inherit;text-decoration:none}
+    .scroll-progress{
+      position:fixed;
+      left:0;
+      top:0;
+      width:0;
+      height:4px;
+      background:linear-gradient(90deg,var(--red),#ff3154);
+      z-index:100;
+      box-shadow:0 0 24px rgba(225,25,45,.45);
+      pointer-events:none;
+    }
+    .top-rule{
+      height:5px;
+      background:linear-gradient(90deg,#8b0011,var(--red),#ff394f);
+      overflow:hidden;
+      position:relative;
+    }
+    .top-rule::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(110deg,transparent 0 34%,rgba(255,255,255,.22) 48%,transparent 62%);
+      transform:translateX(-70%);
+      animation:topSheen 7s ease-in-out infinite;
+    }
+    .site-header{
+      background:rgba(255,255,255,.96);
+      border-bottom:1px solid var(--line);
+      position:sticky;
+      top:0;
+      z-index:20;
+      backdrop-filter:blur(18px);
+      transition:box-shadow .28s ease;
+    }
+    body.is-scrolled .site-header{box-shadow:0 18px 46px rgba(16,24,40,.12)}
+    .header-inner{
+      width:min(1180px,calc(100% - 48px));
+      min-height:86px;
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:40px;
+    }
+    .logo img{width:180px;height:auto;display:block;transition:transform .24s ease}
+    .logo:hover img{transform:translateY(-2px)}
+    .nav{
+      display:flex;
+      gap:32px;
+      color:#344054;
+      font-size:16px;
+      font-weight:800;
+      white-space:nowrap;
+    }
+    .nav a{
+      padding:31px 0;
+      position:relative;
+    }
+    .nav a::after{
+      content:"";
+      position:absolute;
+      left:0;
+      bottom:24px;
+      width:0;
+      height:2px;
+      background:var(--red);
+      transition:width .24s ease;
+    }
+    .nav a:hover::after,
+    .nav a.active::after{width:100%}
+    .page-hero{
+      min-height:420px;
+      color:#fff;
+      background:
+        linear-gradient(180deg,rgba(0,0,0,.22),rgba(0,0,0,.72)),
+        var(--hero-image, url("bjzx-hero-2.jpg")) center/cover no-repeat;
+      display:flex;
+      align-items:flex-end;
+      position:relative;
+      overflow:hidden;
+      isolation:isolate;
+    }
+    .page-hero::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(90deg,rgba(255,255,255,.11) 1px,transparent 1px),
+        linear-gradient(0deg,rgba(255,255,255,.11) 1px,transparent 1px);
+      background-size:42px 42px;
+      opacity:.28;
+      z-index:-1;
+    }
+    .page-hero-inner{
+      width:min(1180px,calc(100% - 48px));
+      margin:0 auto;
+      padding:74px 0 66px;
+    }
+    .breadcrumb{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      font-size:14px;
+      color:rgba(255,255,255,.82);
+      margin-bottom:24px;
+      font-weight:700;
+    }
+    .breadcrumb a{color:#fff;border-bottom:1px solid rgba(255,255,255,.64)}
+    .kicker{
+      display:inline-flex;
+      padding:7px 13px;
+      border:1px solid rgba(255,255,255,.34);
+      background:rgba(255,255,255,.12);
+      font-size:13px;
+      font-weight:900;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      margin-bottom:20px;
+      backdrop-filter:blur(14px);
+    }
+    h1{
+      max-width:880px;
+      font-size:58px;
+      line-height:1.1;
+      font-weight:900;
+      letter-spacing:0;
+      text-shadow:0 18px 48px rgba(0,0,0,.32);
+    }
+    .summary{
+      max-width:760px;
+      margin-top:22px;
+      color:rgba(255,255,255,.88);
+      font-size:20px;
+      line-height:1.8;
+    }
+    .content-shell{
+      width:min(1180px,calc(100% - 48px));
+      margin:64px auto 96px;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 300px;
+      gap:64px;
+      align-items:start;
+    }
+    .panel{
+      background:#fff;
+      border:1px solid var(--line);
+      box-shadow:0 18px 54px rgba(18,24,40,.065);
+      padding:36px;
+    }
+    .section-title{
+      font-size:34px;
+      line-height:1.2;
+      padding-left:18px;
+      border-left:6px solid var(--red);
+      margin-bottom:24px;
+    }
+    .lead{
+      color:#424242;
+      font-size:18px;
+      line-height:2;
+      margin-bottom:26px;
+    }
+    .rich-section{
+      margin:34px 0;
+      padding-top:28px;
+      border-top:1px solid var(--line);
+    }
+    .rich-section h3{
+      font-size:26px;
+      line-height:1.3;
+      margin-bottom:14px;
+    }
+    .rich-section p{
+      color:#444;
+      font-size:17px;
+      line-height:1.95;
+      margin:12px 0;
+    }
+    .detail-list{
+      display:grid;
+      gap:12px;
+      margin:18px 0 6px;
+    }
+    .detail-list li{
+      list-style:none;
+      color:#444;
+      line-height:1.75;
+      padding:14px 16px 14px 44px;
+      background:var(--soft);
+      border-left:4px solid var(--red);
+      position:relative;
+    }
+    .detail-list li::before{
+      content:"";
+      width:8px;
+      height:8px;
+      background:var(--red);
+      position:absolute;
+      left:18px;
+      top:24px;
+    }
+    .info-table{
+      display:grid;
+      grid-template-columns:180px 1fr;
+      border:1px solid var(--line);
+      margin:24px 0;
+      background:#fff;
+    }
+    .info-table div{
+      padding:16px 18px;
+      border-bottom:1px solid var(--line);
+      line-height:1.7;
+    }
+    .info-table div:nth-child(odd){
+      background:var(--cream);
+      color:var(--red);
+      font-weight:900;
+    }
+    .info-table div:nth-last-child(-n+2){border-bottom:0}
+    .forum-board{
+      display:grid;
+      gap:16px;
+      margin:24px 0;
+    }
+    .forum-post{
+      border:1px solid var(--line);
+      background:#fff;
+      padding:22px;
+      box-shadow:0 12px 34px rgba(18,24,40,.055);
+    }
+    .forum-post strong{
+      display:block;
+      font-size:19px;
+      line-height:1.45;
+      margin-bottom:8px;
+    }
+    .forum-post span{
+      color:var(--red);
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+    .forum-post p{
+      color:#555;
+      line-height:1.75;
+      margin-top:8px;
+    }
+    .quote-card{
+      margin:30px 0;
+      padding:28px 32px;
+      background:linear-gradient(180deg,#fff,var(--cream));
+      border-left:8px solid var(--red);
+      font-size:22px;
+      line-height:1.7;
+      font-weight:900;
+      box-shadow:var(--shadow);
+    }
+    .tag-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin:18px 0 8px;
+    }
+    .tag-row span{
+      border:1px solid rgba(181,0,24,.22);
+      background:#fffafa;
+      color:var(--red);
+      padding:8px 11px;
+      font-size:13px;
+      font-weight:900;
+    }
+    .action-box{
+      margin:26px 0;
+      padding:24px;
+      background:#151515;
+      color:#fff;
+      border-top:6px solid var(--red);
+    }
+    .action-box h3{font-size:24px;margin-bottom:10px}
+    .action-box p{color:rgba(255,255,255,.78);line-height:1.8}
+    .source-note{
+      margin-top:34px;
+      padding:24px;
+      border:1px solid rgba(181,0,24,.22);
+      background:#fffafa;
+    }
+    .source-note h3{
+      color:var(--red);
+      font-size:22px;
+      margin-bottom:12px;
+    }
+    .source-note p{
+      color:#444;
+      line-height:1.85;
+      margin:10px 0;
+    }
+    .source-note ul{
+      display:grid;
+      gap:8px;
+      margin-top:12px;
+      list-style:none;
+    }
+    .source-note a{
+      color:var(--red);
+      font-weight:900;
+      border-bottom:1px solid rgba(181,0,24,.4);
+    }
+    .forum-shell{
+      display:grid;
+      gap:18px;
+    }
+    .forum-login-card{
+      display:grid;
+      gap:14px;
+      grid-template-columns:1fr;
+      border:1px solid var(--line);
+      background:#151515;
+      color:#fff;
+      padding:22px;
+      box-shadow:var(--shadow);
+    }
+    .forum-login-card h3{
+      font-size:22px;
+      line-height:1.35;
+    }
+    .forum-login-card p{
+      color:rgba(255,255,255,.72);
+      line-height:1.7;
+    }
+    .forum-login-form{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr)) auto;
+      gap:10px;
+      align-items:end;
+    }
+    .forum-login-form label{
+      display:grid;
+      gap:6px;
+      font-weight:900;
+      font-size:13px;
+      color:rgba(255,255,255,.8);
+    }
+    .forum-login-form input{
+      width:100%;
+      border:1px solid rgba(255,255,255,.22);
+      background:rgba(255,255,255,.08);
+      color:#fff;
+      font:inherit;
+      padding:12px 13px;
+      outline:none;
+    }
+    .forum-login-form input:focus{
+      border-color:rgba(255,255,255,.62);
+      box-shadow:0 0 0 4px rgba(255,255,255,.1);
+    }
+    .forum-userbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      border:1px solid rgba(181,0,24,.18);
+      background:#fff7f8;
+      padding:14px 16px;
+      font-weight:900;
+    }
+    .forum-userbar span{
+      color:var(--muted);
+      font-weight:700;
+      margin-left:8px;
+    }
+    .forum-category-tabs{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      border:1px solid var(--line);
+      background:#fff;
+      padding:12px;
+      box-shadow:0 10px 26px rgba(18,24,40,.045);
+    }
+    .forum-category-tabs button{
+      border:1px solid rgba(181,0,24,.2);
+      background:#fff;
+      color:#8b0011;
+      font-weight:900;
+      padding:9px 12px;
+      cursor:pointer;
+      transition:background .2s ease,transform .2s ease,border-color .2s ease;
+    }
+    .forum-category-tabs button:hover,
+    .forum-category-tabs button.active{
+      background:var(--red);
+      color:#fff;
+      border-color:var(--red);
+      transform:translateY(-2px);
+    }
+    .forum-composer{
+      background:linear-gradient(180deg,#fff,var(--cream));
+      border:1px solid var(--line);
+      border-top:6px solid var(--red);
+      padding:26px;
+      box-shadow:var(--shadow);
+    }
+    .forum-composer.is-disabled{
+      opacity:.68;
+    }
+    .forum-composer label{
+      display:block;
+      color:#333;
+      font-weight:900;
+      margin:16px 0 8px;
+    }
+    .forum-composer input,
+    .forum-composer select,
+    .forum-composer textarea,
+    .reply-box input,
+    .reply-box textarea{
+      width:100%;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--ink);
+      font:inherit;
+      padding:13px 14px;
+      outline:none;
+      transition:border-color .2s ease,box-shadow .2s ease;
+    }
+    .forum-composer textarea,
+    .reply-box textarea{
+      min-height:116px;
+      resize:vertical;
+    }
+    .forum-composer input:focus,
+    .forum-composer select:focus,
+    .forum-composer textarea:focus,
+    .reply-box input:focus,
+    .reply-box textarea:focus{
+      border-color:rgba(181,0,24,.48);
+      box-shadow:0 0 0 4px rgba(181,0,24,.08);
+    }
+    .forum-toolbar{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:14px;
+    }
+    .sticker-toggle{
+      margin-top:14px;
+    }
+    .sticker-panel{
+      display:none;
+      margin-top:12px;
+      padding:14px;
+      border:1px solid var(--line);
+      background:#fff;
+    }
+    .sticker-panel.open{
+      display:block;
+    }
+    .sticker-search{
+      margin-top:0;
+    }
+    .sticker-search input{
+      width:100%;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--ink);
+      font:inherit;
+      padding:12px 14px;
+      outline:none;
+      transition:border-color .2s ease,box-shadow .2s ease;
+    }
+    .sticker-search input:focus{
+      border-color:rgba(181,0,24,.48);
+      box-shadow:0 0 0 4px rgba(181,0,24,.08);
+    }
+    .sticker-presets{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:10px;
+    }
+    .sticker-web-search{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:10px;
+    }
+    .sticker-web-search a{
+      border:1px solid rgba(21,21,21,.14);
+      background:#151515;
+      color:#fff;
+      font-weight:900;
+      padding:8px 11px;
+      font-size:13px;
+      transition:transform .2s ease,background .2s ease;
+    }
+    .sticker-web-search a:hover{
+      background:var(--red);
+      transform:translateY(-2px);
+    }
+    .sticker-chip{
+      border:1px solid rgba(181,0,24,.22);
+      background:#fff7f7;
+      color:var(--red);
+      font-weight:800;
+      padding:7px 11px;
+      cursor:pointer;
+      transition:background .2s ease,transform .2s ease;
+    }
+    .sticker-chip:hover{
+      background:#fff;
+      transform:translateY(-2px);
+    }
+    .forum-btn{
+      border:0;
+      background:var(--red);
+      color:#fff;
+      font-weight:900;
+      padding:11px 15px;
+      cursor:pointer;
+      transition:transform .2s ease,background .2s ease;
+    }
+    .forum-btn:hover{background:#d90722;transform:translateY(-2px)}
+    .forum-btn.secondary{background:#222}
+    .forum-btn.light{
+      background:#fff;
+      color:var(--red);
+      border:1px solid rgba(181,0,24,.28);
+    }
+    .forum-btn.light.is-active{
+      background:#fff1f2;
+      border-color:rgba(181,0,24,.48);
+      color:#8b0011;
+      box-shadow:inset 0 0 0 1px rgba(181,0,24,.14);
+    }
+    .forum-btn:disabled{
+      cursor:not-allowed;
+      opacity:.54;
+      transform:none;
+    }
+    .sticker-picker{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(82px,1fr));
+      gap:10px;
+      margin-top:14px;
+    }
+    .sticker-empty{
+      color:var(--muted);
+      padding:14px;
+      border:1px dashed #bbb;
+      background:#fff;
+      line-height:1.7;
+    }
+    .sticker-btn{
+      min-height:72px;
+      border:1px solid var(--line);
+      background:#fff;
+      cursor:pointer;
+      display:grid;
+      place-items:center;
+      position:relative;
+      overflow:hidden;
+      transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+    }
+    .sticker-btn:hover{
+      transform:translateY(-3px) rotate(-2deg);
+      box-shadow:var(--shadow);
+      border-color:rgba(181,0,24,.32);
+    }
+    .sticker-btn img{
+      width:100%;
+      height:64px;
+      object-fit:cover;
+    }
+    .sticker-btn.photo{
+      min-height:96px;
+    }
+    .sticker-btn.card{
+      min-height:96px;
+    }
+    .sticker-btn.photo img{
+      height:96px;
+    }
+    .sticker-btn.card img{
+      height:96px;
+      object-fit:cover;
+    }
+    .sticker-btn span{
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:0;
+      padding:6px 8px;
+      color:#fff;
+      background:linear-gradient(180deg,transparent,rgba(0,0,0,.82));
+      font-size:12px;
+      font-weight:900;
+      text-shadow:0 1px 5px rgba(0,0,0,.6);
+    }
+    .sticker-btn.vibe img{
+      height:70px;
+      object-fit:cover;
+    }
+    .sticker-btn.emoji img,
+    .inline-sticker{
+      width:28px;
+      height:28px;
+      object-fit:contain;
+      vertical-align:middle;
+    }
+    .inline-meme,
+    .inline-vibe,
+    .inline-photo-sticker{
+      display:block;
+      max-width:min(220px,100%);
+      max-height:150px;
+      object-fit:contain;
+      margin:10px 0;
+      border:1px solid var(--line);
+      background:#fff;
+      box-shadow:0 10px 28px rgba(18,24,40,.10);
+    }
+    .inline-photo-sticker{
+      max-width:min(260px,100%);
+      max-height:none;
+      overflow:hidden;
+      position:relative;
+      padding:0;
+    }
+    .inline-photo-sticker img{
+      width:100%;
+      height:170px;
+      object-fit:cover;
+      display:block;
+    }
+    .inline-photo-sticker figcaption{
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:0;
+      padding:10px 12px;
+      background:linear-gradient(180deg,transparent,rgba(0,0,0,.86));
+      color:#fff;
+      font-size:20px;
+      font-weight:900;
+      text-align:center;
+      text-shadow:0 2px 8px rgba(0,0,0,.75);
+    }
+    .forum-status{
+      color:var(--red);
+      font-weight:900;
+      min-height:22px;
+      margin-top:12px;
+    }
+    .forum-feed{
+      display:grid;
+      gap:12px;
+    }
+    .student-post{
+      border:1px solid var(--line);
+      background:#fff;
+      box-shadow:0 10px 26px rgba(18,24,40,.055);
+      padding:18px;
+    }
+    .student-post header{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-start;
+      margin-bottom:10px;
+    }
+    .student-post h3{
+      font-size:21px;
+      line-height:1.35;
+      margin-bottom:5px;
+    }
+    .post-meta{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.6;
+    }
+    .post-category{
+      display:inline-flex;
+      align-items:center;
+      padding:4px 8px;
+      margin-right:6px;
+      color:#fff;
+      background:#151515;
+      font-size:12px;
+      font-weight:900;
+    }
+    .post-body{
+      color:#444;
+      line-height:1.75;
+      white-space:pre-wrap;
+      margin:10px 0;
+    }
+    .post-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      border-top:1px solid var(--line);
+      padding-top:10px;
+      margin-top:10px;
+    }
+    .reply-box{
+      margin-top:12px;
+      padding:14px;
+      background:var(--soft);
+      border:1px solid var(--line);
+    }
+    .reply-list{
+      display:grid;
+      gap:8px;
+      margin-top:10px;
+    }
+    .reply{
+      background:#fffafa;
+      border-left:4px solid var(--red);
+      padding:10px 12px;
+      color:#444;
+      line-height:1.7;
+    }
+    .back-to-top{
+      position:fixed;
+      right:22px;
+      bottom:24px;
+      z-index:20;
+      width:48px;
+      height:48px;
+      border:0;
+      background:var(--red);
+      color:#fff;
+      font-size:20px;
+      font-weight:900;
+      cursor:pointer;
+      box-shadow:0 14px 36px rgba(181,0,24,.28);
+      opacity:0;
+      pointer-events:none;
+      transform:translateY(12px);
+      transition:opacity .2s ease,transform .2s ease,background .2s ease;
+    }
+    .back-to-top.show{
+      opacity:1;
+      pointer-events:auto;
+      transform:translateY(0);
+    }
+    .back-to-top:hover{
+      background:#d90722;
+    }
+    .empty-forum{
+      padding:24px;
+      background:var(--soft);
+      border:1px dashed #bbb;
+      color:var(--muted);
+      line-height:1.8;
+    }
+    .admin-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:16px;
+      margin:24px 0;
+    }
+    .admin-card{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg,#fff,var(--cream));
+      padding:22px;
+    }
+    .admin-card strong{
+      display:block;
+      color:var(--red);
+      font-size:32px;
+      line-height:1;
+      margin-bottom:8px;
+    }
+    .admin-list{
+      display:grid;
+      gap:16px;
+      margin-top:22px;
+    }
+    .admin-item{
+      border:1px solid var(--line);
+      background:#fff;
+      padding:20px;
+      box-shadow:0 12px 34px rgba(18,24,40,.055);
+    }
+    .admin-item h3{
+      font-size:21px;
+      line-height:1.35;
+      margin-bottom:8px;
+    }
+    .admin-item p{
+      color:#555;
+      line-height:1.75;
+      margin:8px 0;
+    }
+    .api-spec{
+      display:grid;
+      gap:10px;
+      margin-top:14px;
+    }
+    .api-spec code{
+      display:block;
+      padding:10px 12px;
+      background:#111827;
+      color:#f8fafc;
+      white-space:normal;
+      overflow-wrap:anywhere;
+    }
+    .feature-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:20px;
+      margin:30px 0;
+    }
+    .feature{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg,#fff,var(--cream));
+      padding:24px;
+      min-height:160px;
+      transition:transform .24s ease,box-shadow .24s ease,border-color .24s ease;
+    }
+    .feature:hover{
+      transform:translateY(-6px);
+      box-shadow:var(--shadow);
+      border-color:rgba(181,0,24,.24);
+    }
+    .feature em{
+      color:var(--red);
+      display:block;
+      font-size:12px;
+      font-style:normal;
+      font-weight:900;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      margin-bottom:10px;
+    }
+    .feature h3{font-size:22px;line-height:1.35;margin-bottom:10px}
+    .feature p,.timeline p,.notice p{color:var(--muted);line-height:1.75}
+    .image-band{
+      min-height:320px;
+      margin:38px 0;
+      background:var(--band-image, url("bjzx-about.jpg")) center/cover no-repeat;
+      box-shadow:22px 22px 0 var(--red),0 26px 70px rgba(18,24,40,.14);
+    }
+    .timeline{
+      display:grid;
+      gap:18px;
+      margin-top:26px;
+    }
+    .timeline article{
+      display:grid;
+      grid-template-columns:96px 1fr;
+      gap:20px;
+      border-top:1px solid var(--line);
+      padding-top:20px;
+    }
+    .timeline strong{
+      color:var(--red);
+      font-size:26px;
+      line-height:1;
+    }
+    .timeline h3{font-size:20px;margin-bottom:8px}
+    .notice-list{
+      display:grid;
+      gap:16px;
+      margin-top:24px;
+    }
+    .notice{
+      display:block;
+      border:1px solid var(--line);
+      padding:22px;
+      background:#fff;
+      transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease;
+    }
+    .notice:hover{
+      transform:translateY(-5px);
+      box-shadow:var(--shadow);
+      border-color:rgba(181,0,24,.24);
+    }
+    .notice time{
+      color:var(--red);
+      font-size:13px;
+      font-weight:900;
+      letter-spacing:.08em;
+    }
+    .notice h3{
+      margin:10px 0 8px;
+      font-size:22px;
+      line-height:1.45;
+    }
+    .official-news-box{
+      margin-top:26px;
+      padding:22px;
+      background:#fff;
+      border:1px solid var(--line);
+      border-top:6px solid var(--red);
+    }
+    .official-news-box h3{
+      font-size:22px;
+      margin-bottom:10px;
+    }
+    .official-news-box p{
+      color:var(--muted);
+      line-height:1.75;
+    }
+    .official-news-list{
+      display:grid;
+      gap:10px;
+      margin-top:14px;
+    }
+    .official-news-list a{
+      display:grid;
+      grid-template-columns:86px 1fr;
+      gap:12px;
+      padding:12px;
+      border:1px solid var(--line);
+      color:var(--ink);
+      background:#fffafa;
+    }
+    .official-news-list time{
+      color:var(--red);
+      font-weight:900;
+    }
+    .photo-rail{
+      display:grid;
+      grid-template-columns:1.12fr .88fr;
+      gap:26px;
+      margin:38px 0;
+      align-items:stretch;
+      perspective:1200px;
+    }
+    .photo-3d{
+      min-height:380px;
+      position:relative;
+      transform-style:preserve-3d;
+    }
+    .photo-3d-card{
+      position:absolute;
+      inset:auto;
+      width:74%;
+      aspect-ratio:16/10;
+      background:var(--photo) center/cover no-repeat;
+      border:10px solid #fff;
+      box-shadow:0 28px 72px rgba(18,24,40,.22);
+      transform:translate3d(var(--x),var(--y),var(--z)) rotateY(var(--ry)) rotateX(var(--rx)) rotateZ(var(--rz));
+      transition:transform .42s ease,box-shadow .42s ease;
+    }
+    .photo-3d-card:nth-child(1){left:0;top:12px}
+    .photo-3d-card:nth-child(2){right:0;top:92px}
+    .photo-3d-card:nth-child(3){left:16%;bottom:0}
+    .photo-3d:hover .photo-3d-card{
+      box-shadow:0 34px 86px rgba(181,0,24,.18),0 28px 72px rgba(18,24,40,.20);
+    }
+    .source-box{
+      border-top:6px solid var(--red);
+      background:linear-gradient(180deg,#fff,var(--cream));
+      padding:28px;
+      box-shadow:var(--shadow);
+      align-self:center;
+    }
+    .source-box h3{font-size:24px;line-height:1.35;margin-bottom:12px}
+    .source-box p{color:var(--muted);line-height:1.8;margin-bottom:18px}
+    .source-box a,
+    .map-actions a{
+      display:inline-flex;
+      color:#fff;
+      background:var(--red);
+      padding:12px 16px;
+      font-weight:900;
+      transition:transform .22s ease,background .22s ease;
+    }
+    .source-box a:hover,
+    .map-actions a:hover{background:#d90722;transform:translateY(-3px)}
+    .official-gallery{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:18px;
+      margin:30px 0;
+    }
+    .official-gallery a{
+      display:block;
+      min-height:190px;
+      background:var(--photo) center/cover no-repeat;
+      border:1px solid var(--line);
+      box-shadow:0 14px 38px rgba(18,24,40,.08);
+      position:relative;
+      overflow:hidden;
+      transition:transform .26s ease,box-shadow .26s ease,filter .26s ease;
+    }
+    .official-gallery a::after{
+      content:"";
+      position:absolute;
+      inset:auto 0 0;
+      padding:12px;
+      color:#fff;
+      background:linear-gradient(180deg,transparent,rgba(0,0,0,.72));
+      font-weight:900;
+      font-size:13px;
+      content:attr(aria-label);
+    }
+    .official-gallery a:hover{
+      transform:translateY(-7px);
+      box-shadow:var(--shadow-strong);
+      filter:saturate(1.08) contrast(1.04);
+    }
+    .real-map{
+      border:1px solid var(--line);
+      background:#fff;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      margin:30px 0 24px;
+    }
+    .real-map iframe{
+      width:100%;
+      min-height:430px;
+      border:0;
+      display:block;
+      filter:saturate(1.02) contrast(1.02);
+    }
+    .campus-map-board{
+      display:grid;
+      grid-template-columns:minmax(0,1.45fr) minmax(260px,.55fr);
+      min-height:460px;
+      border:1px solid var(--line);
+      background:#fff;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      margin:30px 0 24px;
+    }
+    .campus-map-embed{
+      border:1px solid var(--line);
+      background:#fff;
+      box-shadow:0 14px 38px rgba(18,24,40,.07);
+      margin:-10px 0 24px;
+      overflow:hidden;
+    }
+    .campus-map-embed header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:14px;
+      padding:14px 16px;
+      border-bottom:1px solid var(--line);
+      background:#fffafa;
+    }
+    .campus-map-embed strong{
+      font-size:16px;
+    }
+    .campus-map-embed span{
+      color:var(--muted);
+      font-size:13px;
+      font-weight:800;
+    }
+    .campus-map-embed iframe{
+      width:100%;
+      min-height:440px;
+      border:0;
+      display:block;
+      background:#eef3f5;
+    }
+    .campus-map-canvas{
+      min-height:460px;
+      background:#eef3f5;
+    }
+    .campus-map-canvas .leaflet-popup-content{
+      font-family:"Microsoft Yahei","PingFang SC",sans-serif;
+      line-height:1.65;
+    }
+    .campus-map-panel{
+      border-left:1px solid var(--line);
+      background:linear-gradient(180deg,#fff,var(--cream));
+      padding:20px;
+      display:grid;
+      align-content:start;
+      gap:12px;
+    }
+    .campus-map-panel h3{
+      font-size:21px;
+      line-height:1.35;
+    }
+    .campus-map-panel p{
+      color:var(--muted);
+      line-height:1.7;
+    }
+    .campus-locator-list{
+      list-style:none;
+      display:grid;
+      gap:10px;
+    }
+    .campus-locator-list button{
+      width:100%;
+      text-align:left;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--ink);
+      padding:12px;
+      cursor:pointer;
+      transition:transform .2s ease,border-color .2s ease,background .2s ease;
+    }
+    .campus-locator-list button:hover,
+    .campus-locator-list button.active{
+      border-color:rgba(181,0,24,.42);
+      background:#fff7f8;
+      transform:translateX(4px);
+    }
+    .campus-locator-list strong{
+      display:block;
+      margin-bottom:4px;
+    }
+    .campus-locator-list span{
+      display:block;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.5;
+    }
+    .map-actions{
+      display:flex;
+      gap:14px;
+      flex-wrap:wrap;
+      margin-top:18px;
+    }
+    .map-actions a.secondary{
+      background:#222;
+    }
+    .campus-map-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:16px;
+      margin:26px 0;
+    }
+    .campus-map-card{
+      border:1px solid var(--line);
+      background:#fff;
+      padding:20px;
+      box-shadow:0 12px 34px rgba(18,24,40,.055);
+    }
+    .campus-map-card h3{
+      font-size:20px;
+      margin-bottom:8px;
+    }
+    .campus-map-card p{
+      color:var(--muted);
+      line-height:1.7;
+      margin-bottom:12px;
+    }
+    .side-panel{
+      position:sticky;
+      top:112px;
+      border-top:6px solid var(--red);
+      background:#fff;
+      box-shadow:var(--shadow);
+      padding:26px;
+    }
+    .side-panel h3{font-size:21px;margin-bottom:18px}
+    .side-links{
+      list-style:none;
+      display:grid;
+      gap:0;
+      border-top:1px solid var(--line);
+    }
+    .side-links a{
+      display:block;
+      padding:14px 0;
+      border-bottom:1px solid var(--line);
+      color:#333;
+      font-weight:800;
+      line-height:1.5;
+      transition:color .22s ease,transform .22s ease;
+    }
+    .side-links a:hover,
+    .side-links a.active{color:var(--red);transform:translateX(6px)}
+    .back-link{
+      display:inline-flex;
+      margin-top:30px;
+      color:var(--red);
+      font-weight:900;
+      border-bottom:2px solid var(--red);
+      padding-bottom:5px;
+      transition:transform .22s ease;
+    }
+    .back-link:hover{transform:translateX(-6px)}
+    .footer{
+      background:linear-gradient(135deg,#111 0%,#1b1b1b 58%,#27070b 100%);
+      color:#fff;
+      padding:44px 0 24px;
+      position:relative;
+      overflow:hidden;
+    }
+    .footer::before{
+      content:"北中观察站";
+      position:absolute;
+      right:-18px;
+      top:0;
+      font-size:88px;
+      font-weight:900;
+      color:rgba(255,255,255,.035);
+    }
+    .footer-inner{
+      width:min(1180px,calc(100% - 48px));
+      margin:0 auto;
+      position:relative;
+      z-index:1;
+      color:rgba(255,255,255,.74);
+    }
+    .reveal{
+      opacity:0;
+      transform:translateY(24px);
+      transition:opacity .68s ease,transform .68s ease;
+    }
+    .reveal.in-view{opacity:1;transform:translateY(0)}
+    @keyframes topSheen{
+      0%,42%{transform:translateX(-80%)}
+      68%,100%{transform:translateX(120%)}
+    }
+    @media (max-width:900px){
+      .header-inner,.content-shell{grid-template-columns:1fr;width:min(100% - 32px,1180px)}
+      .header-inner{align-items:flex-start;flex-direction:column;padding:18px 0;gap:8px}
+      .nav{width:100%;overflow:auto}
+      .nav a{padding:10px 0 16px}
+      .page-hero-inner{width:min(100% - 32px,1180px);padding:58px 0 48px}
+      h1{font-size:40px}
+      .summary{font-size:17px}
+      .feature-grid{grid-template-columns:1fr}
+      .content-shell{gap:34px;margin-top:40px}
+      .side-panel{position:relative;top:auto}
+      .timeline article{grid-template-columns:1fr}
+      .image-band{min-height:240px;box-shadow:12px 12px 0 var(--red)}
+      .photo-rail,.official-gallery{grid-template-columns:1fr}
+      .photo-3d{min-height:300px}
+      .photo-3d-card{width:82%;border-width:7px}
+      .official-gallery a{min-height:220px}
+      .forum-login-form{grid-template-columns:1fr}
+      .forum-userbar{align-items:flex-start;flex-direction:column}
+      .campus-map-board{grid-template-columns:1fr}
+      .campus-map-panel{border-left:0;border-top:1px solid var(--line)}
+      .campus-map-canvas{min-height:360px}
+    }
+  </style>
+</head>
+<body>
+  <div class="scroll-progress" aria-hidden="true"></div>
+  <div class="top-rule"></div>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="index.html">
+        <img src="bjzx-logo.jpg" alt="北京中学 Beijing Academy">
+      </a>
+      <nav class="nav" aria-label="主导航">
+        <a href="index.html">首页</a>
+        <a href="portal.html?page=about">学校概况</a>
+        <a href="portal.html?page=academics">教学科研</a>
+        <a href="portal.html?page=student-life">校园文化</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero" id="page-hero">
+      <div class="page-hero-inner">
+        <div class="breadcrumb">
+          <a href="index.html">Home</a>
+          <span>/</span>
+          <span id="crumb">栏目</span>
+        </div>
+        <div class="kicker" id="kicker">Campus Observatory</div>
+        <h1 id="title">北中观察站</h1>
+        <p class="summary" id="summary">学生自主研发的校园内容展示页面。</p>
+      </div>
+    </section>
+
+    <div class="content-shell">
+      <article class="panel" id="content"></article>
+      <aside class="side-panel">
+        <h3>站内导航</h3>
+        <ul class="side-links" id="side-links"></ul>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>北中观察站 ©2026 | 学生自主研发网站 · 非官方学习展示页面</p>
+    </div>
+  </footer>
+  <button class="back-to-top" id="back-to-top" type="button" aria-label="回到顶部">↑</button>
+
+  <script>
+    (() => {
+      const block = event => {
+        event.preventDefault();
+        event.stopPropagation();
+      };
+      document.addEventListener("contextmenu", block, true);
+      document.addEventListener("dragstart", block, true);
+      document.addEventListener("selectstart", block, true);
+      document.addEventListener("keydown", event => {
+        const key = event.key.toLowerCase();
+        const isDevToolsKey = event.key === "F12"
+          || (event.ctrlKey && event.shiftKey && ["i","j","c"].includes(key))
+          || (event.metaKey && event.altKey && ["i","j","c"].includes(key))
+          || ((event.ctrlKey || event.metaKey) && ["u","s"].includes(key));
+        if (isDevToolsKey) block(event);
+      }, true);
+    })();
+
+    const pages = {
+      news:{
+        title:"最新动态",
+        crumb:"最新动态",
+        kicker:"News",
+        hero:"url('bjzx-news-1.jpg')",
+        summary:"把首页三条动态汇总成新闻列表，方便继续阅读校园公告、毕业典礼与校园实践记录。",
+        html:`
+          <h2 class="section-title">新闻列表</h2>
+          <p class="lead">本栏目汇总校园动态、公告入口与活动记录，方便同学、家长和访客快速了解近期信息，并继续进入详情页阅读来源内容。</p>
+          <div class="notice-list">
+            <a class="notice" href="news-detail.html?id=1"><time>2026.07</time><h3>北京中学科技分校2026年“1+3”录取公告</h3><p>官网“最新动态”列表显示该公告日期为 07-27，详情页显示来源为“本网”、发布时间为 2026-07-27 18:00。</p></a>
+            <a class="notice" href="news-detail.html?id=2"><time>2026.06</time><h3>北京中学国际部2026届毕业典礼暨成人礼圆满礼成</h3><p>官网“最新动态”列表收录该标题，列表日期为 06-11，并提供微信原文入口。</p></a>
+            <a class="notice" href="news-detail.html?id=3"><time>2026.06</time><h3>北京市“国家级义务教育教学改革实验区、实验校”展示交流活动在北京中学成功举办</h3><p>官网“最新动态”列表收录该标题，列表日期为 06-05，并提供微信原文入口。</p></a>
+          </div>
+          <div class="official-news-box">
+            <h3>官网最新动态同步</h3>
+            <p id="official-news-status">正在读取北京中学官网“最新动态”列表。</p>
+            <div class="official-news-list" id="official-news-list"></div>
+          </div>
+          <div class="rich-section">
+            <h3>投稿与更新规则</h3>
+            <p>北中观察站可以继续扩展成学生论坛式新闻站。每条动态建议包含标题、时间、栏目、封面图、正文、引用来源和责任编辑，这样后续维护时不会混乱。</p>
+            <ul class="detail-list">
+              <li>校园活动类：记录活动背景、现场过程、学生收获、照片来源和后续安排。</li>
+              <li>学习成果类：展示项目目标、研究过程、成果形式、反思与改进建议。</li>
+              <li>公告信息类：只做整理和转述，重要事项必须提醒读者以学校正式发布为准。</li>
+              <li>学生观点类：保留作者署名、班级或栏目身份，避免发布未经确认的个人隐私。</li>
+            </ul>
+          </div>
+          <div class="action-box"><h3>栏目功能</h3><p>新闻中心支持官网动态同步、站内详情跳转、来源核验和栏目化阅读，后续可继续承接投稿、评论、筛选与审核功能。</p></div>`
+      },
+      about:{
+        title:"学校概况",
+        crumb:"学校概况",
+        kicker:"About",
+        hero:"url('bjzx-about.jpg')",
+        summary:"用学生视角认识北京中学：一所强调现代化、国际化、高品质和真实成长的校园。",
+        html:`
+          <h2 class="section-title">让世界因我更美好</h2>
+          <p class="lead">学校概况栏目以学生视角呈现校园空间、学习方式、成长支持和学校精神，同时标明非官方展示边界。访问者可先建立整体印象，再进入课程、校园、学生天地等栏目继续浏览。</p>
+          <div class="image-band" style="--band-image:url('bjzx-about.jpg')"></div>
+          <div class="rich-section">
+            <h3>这个栏目解决什么问题</h3>
+            <p>学校官网式介绍常常比较正式，而学生观察站更适合回答具体问题：这是一所什么气质的学校？学生每天在怎样的空间里学习？哪些内容最能代表北中的校园文化？</p>
+            <p>本页把“学校精神、校园空间、课程成长、学生表达”放在一起，让新访问者用几分钟获得清晰认识。</p>
+          </div>
+          <div class="feature-grid">
+            <div class="feature"><em>Vision</em><h3>北京风格，中国气质，世界胸怀</h3><p>页面围绕学校定位展开，把抽象理念拆成课程、活动和校园生活中的具体体验。</p></div>
+            <div class="feature"><em>Students</em><h3>学生自主观察与表达</h3><p>北中观察站更像一扇学生窗口，用年轻人的语言记录校园里的真实变化。</p></div>
+            <div class="feature"><em>Campus</em><h3>从校园空间理解学习</h3><p>运动场、学习空间、成长社区都不是背景，而是学生日常生活的一部分。</p></div>
+            <div class="feature"><em>Note</em><h3>非官方内容展示</h3><p>站内内容用于学习展示与校园介绍，不替代学校正式发布的信息。</p></div>
+          </div>
+          <div class="info-table">
+            <div>适合谁看</div><div>想快速了解北京中学气质的新同学、家长、访客，也适合负责维护网站的学生编辑。</div>
+            <div>内容边界</div><div>展示校园文化、学生观察和公开信息整理；招生、考试、录取等正式事项需要回到学校官方渠道确认。</div>
+            <div>维护建议</div><div>每学期更新一次校园照片、活动案例和学生作品，让页面保持真实的新鲜感。</div>
+          </div>`
+      },
+      intro:{
+        title:"学校简介",
+        crumb:"学校简介",
+        kicker:"Profile",
+        hero:"url('bjzx-campus.jpg')",
+        summary:"快速了解北京中学的基本定位、校园气质和北中观察站的记录方式。",
+        html:`
+          <h2 class="section-title">一所面向未来的现代学校</h2>
+          <p class="lead">北京中学以“世界因我更美好”为精神线索，重视学生的主动学习、公共表达和综合素养。本页以网页形式整理学校公开信息、校园空间与学生视角内容。</p>
+          <div class="rich-section">
+            <h3>简介应该怎么读</h3>
+            <p>本页是面向访客的“第一认识页”，从学校定位、学习方式和校园记录三个层次呈现北中的特点。</p>
+            <p>栏目可持续补充校区介绍、办学成果、校园空间照片、年度大事记和学生访谈，形成长期维护的校园档案。</p>
+          </div>
+          <div class="timeline">
+            <article><strong>2013</strong><div><h3>建校与成长</h3><p>以现代学校为目标，持续建设课程、空间和学生支持体系。对于学生而言，学校不是单纯上课的地方，也是一处可以持续参与、表达和创造的公共空间。</p></div></article>
+            <article><strong>12</strong><div><h3>贯通成长视野</h3><p>用更长周期理解学生发展，让不同阶段的学习形成连续路径。北中观察站可以把这种连续性记录为课程故事、活动记录和学生成长档案。</p></div></article>
+            <article><strong>∞</strong><div><h3>面向未来学习</h3><p>关注科学、表达、国际理解、社会实践与真实问题解决。一个好的校园网站，也应该让这些关键词变成能点开、能阅读、能参与的具体内容。</p></div></article>
+          </div>
+          <div class="quote-card">北中观察站的任务，是把校园里正在发生的学习、讨论、创造和成长，整理成可以被更多人看见的内容。</div>`
+      },
+      philosophy:{
+        title:"办学理念",
+        crumb:"办学理念",
+        kicker:"Philosophy",
+        hero:"url('bjzx-hero-3.jpg')",
+        summary:"围绕校训、课程、公共责任和自我成长，呈现学校理念如何落到学生生活里。",
+        html:`
+          <h2 class="section-title">理念不是口号，是每天的选择</h2>
+          <p class="lead">“世界因我更美好”可以被理解为一种行动方式：在课堂里追问，在项目里合作，在公共生活中承担责任。对学生来说，它不是只挂在墙上的文字，而是遇到问题时愿不愿意认真思考、与别人合作、把事情做得更好。</p>
+          <div class="feature-grid">
+            <div class="feature"><em>Self</em><h3>认识自己</h3><p>在阅读、表达、运动与项目经历中发现兴趣和能力边界。</p></div>
+            <div class="feature"><em>Others</em><h3>理解他人</h3><p>通过团队协作、跨文化交流和社区活动练习同理心。</p></div>
+            <div class="feature"><em>World</em><h3>连接世界</h3><p>把校园问题放到真实社会与全球议题中重新理解。</p></div>
+            <div class="feature"><em>Action</em><h3>做出改变</h3><p>让观察、讨论和表达最终成为有结果的行动。</p></div>
+          </div>
+          <div class="rich-section">
+            <h3>可以落地成哪些行动</h3>
+            <ul class="detail-list">
+              <li>在班级讨论中说清楚自己的观点，也认真听完别人的理由。</li>
+              <li>在项目学习中不只追求“好看成果”，还说明资料来源、调研过程和改进依据。</li>
+              <li>在校园公共生活里主动发现问题，例如空间使用、活动组织、信息传达是否更友好。</li>
+              <li>在网站维护中尊重事实、尊重隐私、尊重作者，把表达变成负责任的公共写作。</li>
+            </ul>
+          </div>
+          <div class="forum-board">
+            <div class="forum-post"><span>Discussion</span><strong>本周讨论：什么样的校园空间最能帮助学习？</strong><p>可以从图书角、操场、实验空间、走廊展板、班级角落等具体场景切入，用观察而不是空话来回答。</p></div>
+            <div class="forum-post"><span>Prompt</span><strong>投稿题目：我眼中的“世界因我更美好”</strong><p>建议写一个真实小事件，说明自己做了什么、改变了什么、下一次还可以怎样做得更好。</p></div>
+          </div>`
+      },
+      academics:{
+        title:"教学科研",
+        crumb:"教学科研",
+        kicker:"Academics",
+        hero:"url('bjzx-tour-extra.jpg')",
+        summary:"展示课程教学、项目学习、科学教育和教学研究如何共同支撑学生成长。",
+        html:`
+          <h2 class="section-title">课程教学与研究共同生长</h2>
+          <p class="lead">这个栏目把首页的课程教学进一步展开，帮助访问者理解北中观察站里的“教学科研”不是单一课程表，而是一整套学习支持方式：课程提供基础，项目带来真实任务，研究帮助教师和学生不断改进学习。</p>
+          <div class="feature-grid">
+            <a class="feature" href="portal.html?page=curriculum"><em>Curriculum</em><h3>课程体系</h3><p>基础课程、拓展课程、项目学习与社会实践共同构成学习路径。</p></a>
+            <a class="feature" href="portal.html?page=project-learning"><em>Project</em><h3>项目学习</h3><p>围绕真实问题进行调研、讨论、制作和展示。</p></a>
+            <a class="feature" href="portal.html?page=research"><em>Research</em><h3>教学研究</h3><p>用课堂观察和学习反馈不断优化教学设计。</p></a>
+            <a class="feature" href="portal.html?page=international"><em>Global</em><h3>国际理解</h3><p>在跨文化表达中建立开放视野和独立判断。</p></a>
+          </div>
+          <div class="rich-section">
+            <h3>栏目怎么真正使用</h3>
+            <p>如果把这个网站当成学生论坛或校园知识库，教学科研栏目可以不是单向介绍，而是持续收集学习经验：某个项目怎么做、某门课有什么方法、一次展示怎么准备、一次失败怎样复盘。</p>
+            <ul class="detail-list">
+              <li>课程笔记：整理学科学习方法、阅读书目、实验记录和复习经验。</li>
+              <li>项目案例：记录问题提出、分工、资料来源、作品展示和反思。</li>
+              <li>研究观察：从学生视角描述课堂活动、讨论方式和学习困难。</li>
+              <li>资源导航：把常用资料、校园空间、活动机会和投稿入口放在一起。</li>
+            </ul>
+          </div>
+          <div class="info-table">
+            <div>推荐读者</div><div>想了解北中课程结构的新同学、正在做项目的学生、准备整理学习成果的社团成员。</div>
+            <div>更新频率</div><div>建议每月补充 1-2 个真实项目案例，每学期整理一次课程资源。</div>
+            <div>审核重点</div><div>确保内容来自真实学习经历，不发布考试答案、个人隐私或未经确认的评价。</div>
+          </div>`
+      },
+      curriculum:{
+        title:"课程体系",
+        crumb:"课程体系",
+        kicker:"Curriculum",
+        hero:"url('bjzx-news-2.jpg')",
+        summary:"把课程教学拆成基础、拓展、项目和成长支持四条线索。",
+        html:`
+          <h2 class="section-title">以学生成长为中心的课程结构</h2>
+          <p class="lead">课程体系强调“学科基础 + 兴趣拓展 + 真实任务 + 综合素养”。学生既要掌握稳定的知识结构，也要在项目和实践中训练表达、协作与判断。这个页面可以作为课程导航，帮助访问者理解每类课程的作用。</p>
+          <div class="timeline">
+            <article><strong>01</strong><div><h3>基础课程</h3><p>支持扎实的阅读、计算、科学理解和人文表达。基础课程不是只为了完成作业，更重要的是形成可靠的理解框架和持续学习能力。</p></div></article>
+            <article><strong>02</strong><div><h3>拓展课程</h3><p>围绕兴趣方向提供更丰富的学习选择，让学生在文学、科学、艺术、技术、社会议题等方向继续探索。</p></div></article>
+            <article><strong>03</strong><div><h3>项目学习</h3><p>在调研、制作、汇报和迭代中连接真实世界。项目成果可以是网页、研究报告、展览、演讲、模型或校园改进方案。</p></div></article>
+            <article><strong>04</strong><div><h3>成长支持</h3><p>关注身心健康、艺术体育、劳动实践和公共责任，让学生不仅会学习，也能管理自己、照顾他人、参与集体。</p></div></article>
+          </div>`
+      },
+      "project-learning":{
+        title:"项目学习",
+        crumb:"项目学习",
+        kicker:"Project Learning",
+        hero:"url('bjzx-tour-extra.jpg')",
+        summary:"从真实任务出发，让学生把观察、研究、表达和协作连成完整学习过程。",
+        html:`
+          <h2 class="section-title">在真实任务中学习</h2>
+          <p class="lead">项目学习不是简单做海报或汇报，而是提出问题、收集材料、验证观点、表达成果的完整过程。北中观察站本身也可以被看作一个持续迭代的校园项目：同学们发现问题、整理资料、设计页面、收集反馈，再把网站改得更好。</p>
+          <div class="feature-grid">
+            <div class="feature"><em>Observe</em><h3>观察</h3><p>从校园生活里找到值得追问的问题。</p></div>
+            <div class="feature"><em>Research</em><h3>研究</h3><p>查找资料、访谈同学、整理证据。</p></div>
+            <div class="feature"><em>Create</em><h3>制作</h3><p>把发现转化为网页、展板、文章或演示。</p></div>
+            <div class="feature"><em>Reflect</em><h3>复盘</h3><p>根据反馈修正表达，让成果继续变好。</p></div>
+          </div>
+          <div class="rich-section">
+            <h3>一个项目从开始到发布</h3>
+            <ul class="detail-list">
+              <li>选题：从校园真实问题出发，例如午间空间使用、社团招新、阅读角设计、运动场安全提示等。</li>
+              <li>调研：至少使用两种证据，如现场观察、同学访谈、照片记录、公开资料或问卷统计。</li>
+              <li>制作：把调研变成具体作品，可以是一篇文章、一个网页栏目、一张地图、一份改进建议或一次展示。</li>
+              <li>发布：写清楚作者、时间、资料来源和适用范围，避免让读者误以为是官方通知。</li>
+              <li>复盘：收集反馈，记录哪些地方有效、哪些地方需要修改，下一轮继续迭代。</li>
+            </ul>
+          </div>
+          <div class="forum-board">
+            <div class="forum-post"><span>Project Case</span><strong>校园导览升级</strong><p>真实照片墙、3D 叠片和在线地图共同组成完整的校园导览案例。</p></div>
+            <div class="forum-post"><span>Project Case</span><strong>新闻详情页扩写</strong><p>同一条新闻可以从“标题 + 摘要”扩展成背景、过程、意义、后续安排和读者提醒。</p></div>
+          </div>`
+      },
+      research:{
+        title:"教学研究",
+        crumb:"教学研究",
+        kicker:"Research",
+        hero:"url('bjzx-news-3.jpg')",
+        summary:"把课堂、项目和学生反馈放在一起观察，让教学不断迭代。",
+        html:`
+          <h2 class="section-title">教学研究从课堂现场开始</h2>
+          <p class="lead">教学研究关注学生如何理解、如何表达、如何合作，也关注教师如何设计更清晰的任务和更有效的支持。对于学生观察站来说，这个栏目可以用更轻量的方式记录学习现场：一次讨论、一份作品、一个改进后的任务说明，都可以成为研究材料。</p>
+          <div class="timeline">
+            <article><strong>问</strong><div><h3>提出问题</h3><p>从课堂困难、项目卡点和学生反馈中发现研究主题。例如：为什么有些小组展示很清楚，有些小组明明做了很多却讲不明白？</p></div></article>
+            <article><strong>看</strong><div><h3>观察学习</h3><p>记录学生讨论、作业、展示和反思中的真实表现。观察重点不是评价谁好谁差，而是找到学习过程中的有效方法。</p></div></article>
+            <article><strong>改</strong><div><h3>改进设计</h3><p>优化任务说明、资源支持、评价方式和学习节奏。好的教学研究最后应该能反过来帮助下一次学习更顺利。</p></div></article>
+          </div>
+          <div class="rich-section">
+            <h3>学生可以怎么参与</h3>
+            <p>教学研究不一定只是老师写论文。学生也可以通过观察笔记、学习复盘、访谈记录和项目日志参与其中。北中观察站可以开设“学习方法征集”“课堂观察手记”“项目复盘墙”等栏目。</p>
+            <ul class="detail-list">
+              <li>写一篇“这节课我真正学会了什么”，重点描述理解发生的过程。</li>
+              <li>整理一个项目小组的分工表和时间线，分析协作哪里顺畅、哪里卡住。</li>
+              <li>记录一次展示后的同伴反馈，把建议转化为下一版修改清单。</li>
+            </ul>
+          </div>`
+      },
+      "student-life":{
+        title:"学生天地",
+        crumb:"学生天地",
+        kicker:"Campus Life",
+        hero:"url('bjzx-hero-1.jpg')",
+        summary:"记录学生在社团、运动、阅读、艺术和公共生活里的成长片段。",
+        html:`
+          <h2 class="section-title">校园生活是成长的另一间教室</h2>
+          <p class="lead">学生天地关注课堂之外的北中：运动场上的协作、社团里的组织、阅读中的思考，以及学生对校园公共生活的参与。这个页面应该像学生论坛的首页，能让同学知道最近有什么活动、哪里可以投稿、哪些话题正在被讨论。</p>
+          <div class="feature-grid">
+            <div class="feature"><em>Clubs</em><h3>社团活动</h3><p>在兴趣小组中学习组织、沟通和坚持。</p></div>
+            <div class="feature"><em>Sports</em><h3>运动健康</h3><p>用体育建立节奏、力量和团队意识。</p></div>
+            <div class="feature"><em>Arts</em><h3>艺术表达</h3><p>让音乐、美术、戏剧和设计进入日常表达。</p></div>
+            <a class="feature" href="portal.html?page=forum"><em>Forum</em><h3>学生论坛</h3><p>进入论坛发帖子、回复同学、点赞或投诉不合适的内容。</p></a>
+          </div>
+          <div class="forum-board">
+            <div class="forum-post"><span>Hot Topic</span><strong>社团招新怎么介绍自己最清楚？</strong><p>可以从社团做什么、适合谁加入、需要投入多少时间、能学到什么四个角度写。避免只写“欢迎加入”，要让新同学真的能判断。</p></div>
+            <div class="forum-post"><span>Campus Voice</span><strong>你最喜欢校园里的哪个角落？</strong><p>投稿时建议配一张自己拍的清晰照片，写出地点、使用场景和喜欢它的原因。</p></div>
+            <div class="forum-post"><span>Guide</span><strong>学生作品投稿格式</strong><p>标题、作者、班级或社团、作品简介、图片来源、是否允许公开展示。涉及同学正脸照片时要先获得同意。</p></div>
+          </div>
+          <div class="rich-section">
+            <h3>栏目版块建议</h3>
+            <ul class="detail-list">
+              <li>活动现场：记录运动会、艺术节、社团展示、志愿活动和班级项目。</li>
+              <li>同学投稿：发布随笔、摄影、绘画、项目成果、阅读札记和校园观察。</li>
+              <li>校园问答：整理新同学常问的问题，例如社团怎么参加、图书资源怎么用、活动如何报名。</li>
+              <li>成长记录：展示学生在一次活动或一个项目中的变化，而不只是最后的成果。</li>
+            </ul>
+          </div>`
+      },
+      forum:{
+        title:"学生论坛",
+        crumb:"学生论坛",
+        kicker:"Student Forum",
+        hero:"url('bjzx-hero-2.jpg')",
+        summary:"一个支持登录、分区、发帖、回复、点赞、收藏和投诉的学生论坛。",
+        html:`
+          <h2 class="section-title">北中学生论坛</h2>
+          <p class="lead">学生论坛用于校园话题讨论、投稿交流和学习经验分享。论坛支持发帖、回复、点赞、取消点赞、投诉与表情包搜索；同一帖子被超过 5 个不同用户投诉后将自动移出列表。</p>
+          <div class="forum-shell" id="student-forum">
+            <section class="forum-login-card" id="forum-login-card">
+              <div>
+                <h3>账号登录</h3>
+                <p>登录后可发布帖子、回复、点赞、收藏和投诉；同一账号的收藏会汇总到“我的收藏”。</p>
+              </div>
+              <form class="forum-login-form" id="forum-login-form">
+                <label>用户名<input id="forum-login-username" maxlength="24" autocomplete="username" placeholder="例如：student01"></label>
+                <label>昵称<input id="forum-login-display" maxlength="24" autocomplete="nickname" placeholder="例如：北中同学"></label>
+                <label>密码<input id="forum-login-password" type="password" maxlength="32" autocomplete="current-password" placeholder="至少 3 位"></label>
+                <button class="forum-btn" type="submit">登录 / 注册</button>
+              </form>
+            </section>
+            <div class="forum-userbar" id="forum-userbar"></div>
+            <div class="forum-category-tabs" id="forum-category-tabs" aria-label="论坛分区"></div>
+            <form class="forum-composer" id="forum-form">
+              <h3>发布新帖子</h3>
+              <label for="forum-category">分区</label>
+              <select id="forum-category">
+                <option value="campus">校园生活</option>
+                <option value="study">学习互助</option>
+                <option value="clubs">社团活动</option>
+                <option value="lost">失物招领</option>
+                <option value="suggestions">网站建议</option>
+              </select>
+              <label for="forum-title">标题</label>
+              <input id="forum-title" maxlength="48" placeholder="为帖子填写清楚的标题">
+              <label for="forum-content">正文</label>
+              <textarea id="forum-content" maxlength="800" placeholder="写下你想讨论的校园话题、活动感受、学习经验或提问。"></textarea>
+              <button class="forum-btn light sticker-toggle" type="button" id="sticker-toggle" aria-expanded="false" aria-controls="sticker-panel">选择表情包</button>
+              <div class="sticker-panel" id="sticker-panel">
+                <label for="sticker-search">搜索表情包</label>
+                <div class="sticker-search">
+                  <input id="sticker-search" placeholder="输入：哈基米、Doro、奶龙、乌萨奇、尊嘟假嘟、汗流浃背、学习">
+                </div>
+                <div class="sticker-presets" id="sticker-presets" aria-label="表情包快捷筛选">
+                  <button class="sticker-chip" type="button" data-query="">全部</button>
+                  <button class="sticker-chip" type="button" data-query="潮流">潮流</button>
+                  <button class="sticker-chip" type="button" data-query="新梗">新梗</button>
+                  <button class="sticker-chip" type="button" data-query="Doro">Doro</button>
+                  <button class="sticker-chip" type="button" data-query="哈基米">哈基米</button>
+                  <button class="sticker-chip" type="button" data-query="学习">学习</button>
+                  <button class="sticker-chip" type="button" data-query="作业">作业</button>
+                  <button class="sticker-chip" type="button" data-query="讨论">讨论</button>
+                  <button class="sticker-chip" type="button" data-query="开心">开心</button>
+                  <button class="sticker-chip" type="button" data-query="震惊">震惊</button>
+                  <button class="sticker-chip" type="button" data-query="摸鱼">摸鱼</button>
+                </div>
+                <div class="sticker-web-search" id="sticker-web-search" aria-label="联网搜索表情包"></div>
+                <div class="sticker-picker" id="sticker-picker" aria-label="表情包选择"></div>
+              </div>
+              <div class="forum-toolbar">
+                <button class="forum-btn" type="submit">发布帖子</button>
+                <button class="forum-btn secondary" type="button" id="forum-upload">上传图片</button>
+                <button class="forum-btn light" type="button" id="forum-reset-demo">恢复示例帖子</button>
+                <a class="forum-btn light" href="portal.html?page=admin">进入后台</a>
+              </div>
+              <div class="forum-status" id="forum-status" aria-live="polite"></div>
+            </form>
+            <div class="forum-feed" id="forum-feed"></div>
+          </div>
+          <div class="rich-section">
+            <h3>论坛规则</h3>
+            <ul class="detail-list">
+              <li>可以讨论校园生活、社团活动、学习经验、网站建议和公开活动信息。</li>
+              <li>不要发布个人隐私、攻击性内容、未经确认的传言、考试答案或冒充官方通知的信息。</li>
+              <li>发帖和回复会自动检查敏感词；出现辱骂、暴力、色情、赌博、毒品、作弊、开盒、人肉、冒充官方等内容时不会发布。</li>
+              <li>投诉超过 5 次的帖子会自动删除；这个机制在当前浏览器本地运行。</li>
+              <li>表情包包含潮流文字贴纸、网络 meme 和常用表情，搜索框可以按名称、标签或插入码筛选。</li>
+            </ul>
+          </div>`
+      },
+      admin:{
+        title:"论坛后台",
+        crumb:"论坛后台",
+        kicker:"Forum Admin",
+        hero:"url('bjzx-news-3.jpg')",
+        summary:"管理学生论坛的本地帖子数据：查看统计、删除帖子、清空投诉、导出数据和恢复示例。",
+        html:`
+          <h2 class="section-title">论坛后台管理</h2>
+          <p class="lead">论坛后台用于管理帖子、回复、点赞与投诉数据，支持导出、清理投诉和恢复示例内容。正式部署时可接入账号权限、服务器数据库与审核日志。</p>
+          <div class="admin-grid" id="admin-stats"></div>
+          <div class="forum-toolbar">
+            <button class="forum-btn" type="button" id="admin-export">导出帖子数据</button>
+            <button class="forum-btn light" type="button" id="admin-reset-reports">清空所有投诉</button>
+            <button class="forum-btn secondary" type="button" id="admin-restore-demo">恢复示例帖子</button>
+          </div>
+          <div class="forum-status" id="admin-status" aria-live="polite"></div>
+          <div class="admin-list" id="admin-list"></div>
+          <div class="rich-section">
+            <h3>后台能力说明</h3>
+            <ul class="detail-list">
+              <li>删除帖子：直接从当前浏览器保存的数据中移除。</li>
+              <li>清空投诉：把所有帖子的投诉记录清零，适合误点投诉后恢复。</li>
+              <li>导出数据：把帖子、回复、点赞、投诉记录导出为 JSON 文件。</li>
+              <li>论坛接口支持登录、帖子列表、分区发帖、回复、点赞、收藏、投诉、删除、敏感词审核和数据导出。</li>
+              <li>正式部署建议接入账号权限、服务器数据库、审核队列和操作日志。</li>
+            </ul>
+            <div class="api-spec">
+              <code>GET /api/forum/posts · 获取帖子列表，返回 posts 数组</code>
+              <code>POST /api/forum/auth/login · 登录或注册论坛账号，返回用户信息</code>
+              <code>POST /api/forum/posts · 发布帖子，提交 author/title/content/category/userId</code>
+              <code>POST /api/forum/posts/:id/like · 切换点赞状态，提交 userId；未点赞则点赞，已点赞则取消</code>
+              <code>POST /api/forum/posts/:id/favorite · 切换收藏状态，提交 userId；收藏后出现在“我的收藏”</code>
+              <code>POST /api/forum/posts/:id/report · 投诉帖子，提交 userId/reason，超过 5 个不同用户后删除或进入审核</code>
+              <code>POST /api/forum/posts/:id/replies · 发布回复，提交 author/content/userId</code>
+              <code>DELETE /api/forum/posts/:id/replies/:replyId · 后台删除单条回复</code>
+              <code>DELETE /api/forum/posts/:id · 后台删除帖子</code>
+              <code>POST /api/forum/uploads · 图片上传接口，返回图片 URL</code>
+              <code>POST /api/forum/admin/login · 后台登录，返回 token</code>
+              <code>GET /api/forum/reports · 后台查看投诉列表</code>
+              <code>GET/PUT /api/forum/moderation/sensitive-words · 查看或更新敏感词库</code>
+            </div>
+          </div>`
+      },
+      "campus-tour":{
+        title:"校园导览",
+        crumb:"校园导览",
+        kicker:"Virtual Campus Tour",
+        hero:"url('bjzx-tour-campus.jpg')",
+        summary:"用本地原照片和北京中学官网校园风景原图，做一个更真实的校园视觉导览。",
+        html:`
+          <h2 class="section-title">从空间进入北中</h2>
+          <p class="lead">校园导览采用本地校园照片和北京中学官网“西坝河校区 · 校园风景”公开原图，优先保证真实、清晰、来源明确。</p>
+          <div class="photo-rail">
+            <div class="photo-3d" aria-label="北京中学校园 3D 照片导览">
+              <div class="photo-3d-card" style="--photo:url('bjzx-tour-campus.jpg');--x:0;--y:0;--z:70px;--ry:-10deg;--rx:4deg;--rz:-3deg"></div>
+              <div class="photo-3d-card" style="--photo:url('https://www.beijingacademy.com.cn/cms/u/cms/bjzx/201504/19100400uo7e.jpg');--x:0;--y:0;--z:20px;--ry:10deg;--rx:2deg;--rz:3deg"></div>
+              <div class="photo-3d-card" style="--photo:url('https://www.beijingacademy.com.cn/cms/u/cms/bjzx/201504/19100403rqyr.jpg');--x:0;--y:0;--z:110px;--ry:-4deg;--rx:7deg;--rz:2deg"></div>
+            </div>
+            <div class="source-box">
+              <h3>真实照片来源</h3>
+              <p>北京中学官网“校园风景 / 西坝河校区”栏目提供多张校园原图。本页引用公开来源图片，不使用带防伪标记或不确定来源的素材。</p>
+              <a href="https://www.beijingacademy.com.cn/cms/bjzx/xbhxq/80.jhtml" target="_blank" rel="noopener">打开官网校园风景</a>
+            </div>
+          </div>
+          <div class="feature-grid">
+            <div class="feature"><em>Campus</em><h3>西坝河校区</h3><p>运动场、教学楼和公共空间共同构成学生日常的节奏。</p></div>
+            <div class="feature"><em>Learning</em><h3>现代学习空间</h3><p>支持阅读、讨论、实验、展示和项目协作。</p></div>
+            <div class="feature"><em>Community</em><h3>学生成长社区</h3><p>在更熟悉的关系中获得支持，也学会承担责任。</p></div>
+            <a class="feature" href="portal.html?page=campus-gallery"><em>Gallery</em><h3>高清照片墙</h3><p>查看来自学校官网的校园风景原图入口。</p></a>
+            <a class="feature" href="portal.html?page=campus-map"><em>Map</em><h3>真实地图</h3><p>进入在线地图页面，查看北京中学西坝河校区位置。</p></a>
+          </div>
+          <div class="rich-section">
+            <h3>导览路线建议</h3>
+            <p>如果把这个栏目继续做深，可以按“到校入口、运动场、学习空间、活动空间、展示空间”组织。每个点位最好有一张清晰照片、一段介绍、一条学生视角的观察和一个相关链接。</p>
+            <ul class="detail-list">
+              <li>第一站：校园整体印象。用宽幅照片呈现建筑、操场、树木和公共空间的关系。</li>
+              <li>第二站：学习发生的地方。介绍普通教室、开放学习区、实验或项目展示区域。</li>
+              <li>第三站：学生共同体。记录班级生活、社团活动、体育锻炼和公共讨论。</li>
+              <li>第四站：访问者入口。连接地图、联系方式、照片墙和校园新闻。</li>
+            </ul>
+          </div>`
+      },
+      "campus-gallery":{
+        title:"高清照片墙",
+        crumb:"高清照片墙",
+        kicker:"Official Gallery",
+        hero:"url('https://www.beijingacademy.com.cn/cms/u/cms/bjzx/201504/19100400uo7e.jpg')",
+        summary:"引用北京中学官网公开的西坝河校区校园风景原图，尽量保证真实、清晰、无水印。",
+        html:`
+          <h2 class="section-title">北京中学官网校园风景原图</h2>
+          <p class="lead">图片链接来自北京中学官网“西坝河校区 · 校园风景”页面。点击照片可打开原图；照片墙以真实、清晰、来源明确为原则。</p>
+          <div class="official-gallery">
+            <a href="https://www.beijingacademy.com.cn/cms/u/cms/bjzx/201504/19100400uo7e.jpg" target="_blank" rel="noopener" aria-label="校园风景 01" style="--photo:url('https://www.beijingacademy.com.cn/cms/u/cms/bjzx/201504/19100400uo7e.jpg')"></a>
+            <a href="https://www.beijingacademy.com.cn/cms/u/cms/bjzx/201504/19100403rqyr.jpg" target="_blank" rel="noopener" aria-label="校园风景 02" style="--photo:url('https://www.beijingacademy.com.cn/cms/u/cms/bjzx/201504/19100403rqyr.jpg')"></a>
+            <a href="https://www.beijingacademy.com.cn/cms/u/cms/bjzx/201504/19100406nahw.jpg" target="_blank" rel="noopener" aria-label="校园风景 03" style="--photo:url('https://www.beijingacademy.com.cn/cms/u/cms/bjzx/201504/19100406nahw.jpg')"></a>
+            <a href="https://www.beijingacademy.com.cn/cms/u/cms/bjzx/201504/19100412bmbo.jpg" target="_blank" rel="noopener" aria-label="校园风景 04" style="--photo:url('https://www.beijingacademy.com.cn/cms/u/cms/bjzx/201504/19100412bmbo.jpg')"></a>
+            <a href="https://www.beijingacademy.com.cn/cms/u/cms/bjzx/201504/19100415ky9e.jpg" target="_blank" rel="noopener" aria-label="校园风景 05" style="--photo:url('https://www.beijingacademy.com.cn/cms/u/cms/bjzx/201504/19100415ky9e.jpg')"></a>
+            <a href="https://www.beijingacademy.com.cn/cms/u/cms/bjzx/201504/19100417am51.jpg" target="_blank" rel="noopener" aria-label="校园风景 06" style="--photo:url('https://www.beijingacademy.com.cn/cms/u/cms/bjzx/201504/19100417am51.jpg')"></a>
+          </div>
+          <div class="source-box">
+            <h3>素材说明</h3>
+            <p>页面同时保留本地校园照片与官网远程图片链接；断网时，本地照片仍可在首页和相关栏目显示。</p>
+            <a href="https://www.beijingacademy.com.cn/cms/bjzx/xbhxq/80.jhtml" target="_blank" rel="noopener">查看官网原页面</a>
+          </div>
+          <div class="rich-section">
+            <h3>照片入库标准</h3>
+            <ul class="detail-list">
+              <li>必须是北京中学相关照片，优先使用自己拍摄、学校官网公开图片或明确授权图片。</li>
+              <li>图片应尽量高清、无明显压缩噪点、无水印、无防伪标记、无遮挡主体。</li>
+              <li>人物正脸、姓名、班级等个人信息需要谨慎处理；未经同意不放可识别个人隐私。</li>
+              <li>每张图建议写清楚地点、拍摄或来源时间、用途，例如“校园导览首图”“新闻封面”“照片墙原图”。</li>
+            </ul>
+          </div>`
+      },
+      "campus-map":{
+        title:"查看地图",
+        crumb:"查看地图",
+        kicker:"Campus Map",
+        hero:"url('bjzx-campus.jpg')",
+        summary:"真实在线地图入口，把西坝河校区、东坝南校区和官网动态中出现过的校区名称放在同一个地图面板里处理。",
+        html:`
+          <h2 class="section-title">北京中学校区地图</h2>
+          <p class="lead">官网页脚明确写出学校地址为“北京市朝阳区西坝河东里1号”，并列出西坝河校区、东坝南校区联系电话；官网动态中也出现过东坝初中、红松园校区、明德校区等校区名称。地图面板集中呈现各校区信息：已核验点位直接标注，未核验精确坐标的校区提供同屏搜索定位。</p>
+          <div class="campus-map-board">
+            <div id="campus-map-canvas" class="campus-map-canvas" aria-label="北京中学校区互动地图"></div>
+            <aside class="campus-map-panel">
+              <h3>校区定位</h3>
+          <p>点击校区会同步更新站内地图视图。正式到访仍以学校通知为准。</p>
+              <ul class="campus-locator-list" id="campus-locator-list"></ul>
+            </aside>
+          </div>
+          <div class="campus-map-embed">
+            <header>
+              <strong id="campus-map-frame-title">西坝河校区地图视图</strong>
+              <span>站内地图搜索结果</span>
+            </header>
+            <iframe id="campus-map-frame" title="北京中学校区站内地图搜索" src="https://ditu.amap.com/search?query=%E5%8C%97%E4%BA%AC%E4%B8%AD%E5%AD%A6%20%E8%A5%BF%E5%9D%9D%E6%B2%B3%E4%B8%9C%E9%87%8C1%E5%8F%B7&amp;src=uriapi&amp;innersrc=uriapi"></iframe>
+          </div>
+          <div class="campus-map-grid">
+            <div class="campus-map-card">
+              <h3>西坝河校区</h3>
+              <p>官网页脚明确地址：北京市朝阳区西坝河东里1号。地图面板已直接标出该校区位置。</p>
+              <div class="map-actions">
+                <a href="https://uri.amap.com/search?keyword=%E5%8C%97%E4%BA%AC%E4%B8%AD%E5%AD%A6%20%E8%A5%BF%E5%9D%9D%E6%B2%B3%E4%B8%9C%E9%87%8C1%E5%8F%B7" target="_blank" rel="noopener">高德</a>
+                <a class="secondary" href="https://map.baidu.com/search/%E5%8C%97%E4%BA%AC%E4%B8%AD%E5%AD%A6%20%E8%A5%BF%E5%9D%9D%E6%B2%B3%E4%B8%9C%E9%87%8C1%E5%8F%B7" target="_blank" rel="noopener">百度</a>
+              </div>
+            </div>
+            <div class="campus-map-card">
+              <h3>东坝南校区</h3>
+              <p>官网页脚列出东坝南校区联系电话。地图面板已放入同屏校区列表，并提供高德、百度搜索入口。</p>
+              <div class="map-actions">
+                <a href="https://uri.amap.com/search?keyword=%E5%8C%97%E4%BA%AC%E4%B8%AD%E5%AD%A6%20%E4%B8%9C%E5%9D%9D%E5%8D%97%E6%A0%A1%E5%8C%BA" target="_blank" rel="noopener">高德</a>
+                <a class="secondary" href="https://map.baidu.com/search/%E5%8C%97%E4%BA%AC%E4%B8%AD%E5%AD%A6%20%E4%B8%9C%E5%9D%9D%E5%8D%97%E6%A0%A1%E5%8C%BA" target="_blank" rel="noopener">百度</a>
+              </div>
+            </div>
+            <div class="campus-map-card">
+              <h3>东坝初中</h3>
+              <p>官网动态中出现“北京中学（东坝初中）”相关活动标题。地图面板已把它列为同屏待定位校区。</p>
+              <div class="map-actions">
+                <a href="https://uri.amap.com/search?keyword=%E5%8C%97%E4%BA%AC%E4%B8%AD%E5%AD%A6%20%E4%B8%9C%E5%9D%9D%E5%88%9D%E4%B8%AD" target="_blank" rel="noopener">高德</a>
+                <a class="secondary" href="https://map.baidu.com/search/%E5%8C%97%E4%BA%AC%E4%B8%AD%E5%AD%A6%20%E4%B8%9C%E5%9D%9D%E5%88%9D%E4%B8%AD" target="_blank" rel="noopener">百度</a>
+              </div>
+            </div>
+            <div class="campus-map-card">
+              <h3>红松园校区 / 明德校区</h3>
+              <p>官网动态出现过红松园校区、明德校区相关内容。页面不再把它们藏在底部，而是放进同一校区定位面板。</p>
+              <div class="map-actions">
+                <a href="https://uri.amap.com/search?keyword=%E5%8C%97%E4%BA%AC%E4%B8%AD%E5%AD%A6%20%E7%BA%A2%E6%9D%BE%E5%9B%AD%E6%A0%A1%E5%8C%BA" target="_blank" rel="noopener">红松园</a>
+                <a class="secondary" href="https://uri.amap.com/search?keyword=%E5%8C%97%E4%BA%AC%E4%B8%AD%E5%AD%A6%20%E6%98%8E%E5%BE%B7%E6%A0%A1%E5%8C%BA" target="_blank" rel="noopener">明德</a>
+              </div>
+            </div>
+          </div>
+          <div class="info-table">
+            <div>地址</div><div>北京市朝阳区西坝河东里 1 号。</div>
+            <div>地图用途</div><div>用于访问者识别校区位置、规划路线和了解周边环境，不替代学校正式到访安排。</div>
+            <div>维护建议</div><div>如果之后能拿到校内平面导览图，可以在此页继续加入楼宇、操场、活动空间和参观路线。</div>
+          </div>
+          <div class="rich-section">
+            <h3>到访提示</h3>
+            <p>学校空间具有管理边界，访客到校前应确认开放安排、入校要求和活动时间。这个页面主要用于网页展示与位置导航，不负责发布正式入校通知。</p>
+          </div>`
+      },
+      admissions:{
+        title:"招生信息",
+        crumb:"招生信息",
+        kicker:"Admissions",
+        hero:"url('bjzx-news-1.jpg')",
+        summary:"整理招生栏目入口、项目说明和访问者需要注意的信息边界。",
+        html:`
+          <h2 class="section-title">招生信息入口</h2>
+          <p class="lead">本页用于承接首页“招生信息”入口。由于北中观察站是非官方学习展示页面，具体招生安排仍应以学校正式发布为准。这里更适合做“信息导航”和“阅读说明”，帮助访问者知道应该看哪些内容、注意哪些边界。</p>
+          <div class="feature-grid">
+            <div class="feature"><em>Info</em><h3>项目说明</h3><p>关注贯通培养、校园开放活动、报名提示和项目介绍。</p></div>
+            <div class="feature"><em>Notice</em><h3>通知公告</h3><p>重要时间节点会在通知公告栏目里集中展示。</p></div>
+            <a class="feature" href="portal.html?page=contact"><em>Contact</em><h3>联系我们</h3><p>查看地址、电话和留言方式。</p></a>
+            <a class="feature" href="news-detail.html?id=1"><em>2026</em><h3>录取公告</h3><p>阅读“1+3”培养实验录取公告详情。</p></a>
+          </div>
+          <div class="rich-section">
+            <h3>访问者可以在这里做什么</h3>
+            <ul class="detail-list">
+              <li>先阅读已有公告，了解页面目前收录了哪些招生或项目相关信息。</li>
+              <li>进入“通知公告”页，查看站内整理的更新时间线。</li>
+              <li>进入“联系我们”页，查看地址和电话；正式咨询仍建议以学校官方渠道为准。</li>
+              <li>如果是维护者，可以把每次新增公告按“发布时间、适用对象、核心内容、官方来源”四项补全。</li>
+            </ul>
+          </div>
+          <div class="info-table">
+            <div>重要提醒</div><div>本页面不直接发布录取结果、不收集报名信息、不替代官方通知。</div>
+            <div>建议补充</div><div>开放日时间、报名流程、常见问题、材料准备、官方链接和咨询方式。</div>
+            <div>页面目标</div><div>让访问者少迷路，能从一个入口跳到公告、地图、联系方式和新闻详情。</div>
+          </div>`
+      },
+      contact:{
+        title:"联系我们",
+        crumb:"联系我们",
+        kicker:"Contact",
+        hero:"url('bjzx-campus.jpg')",
+        summary:"把首页的地址和电话整理成独立联系页，并补充学生站点的反馈入口说明。",
+        html:`
+          <h2 class="section-title">联系与反馈</h2>
+          <p class="lead">北京市朝阳区西坝河东里 1 号。联系电话：010-50981098（西坝河校区） / 010-50951290（东坝南校区）。这一页把地址、电话、地图和观察站反馈说明放在一起，避免访问者只看到一行文字。</p>
+          <div class="feature-grid">
+            <div class="feature"><em>Address</em><h3>学校地址</h3><p>北京市朝阳区西坝河东里 1 号。</p></div>
+            <div class="feature"><em>Phone</em><h3>联系电话</h3><p>010-50981098 / 010-50951290。</p></div>
+            <div class="feature"><em>Feedback</em><h3>观察站反馈</h3><p>如果这是课堂展示项目，可继续扩展成表单、留言板或投稿入口。</p></div>
+            <div class="feature"><em>Notice</em><h3>信息边界</h3><p>站点为非官方展示页面，正式事项请以学校官方渠道为准。</p></div>
+          </div>
+          <div class="rich-section">
+            <h3>反馈可以怎么写</h3>
+            <p>如果后续要加真正的表单，这里可以收集三类反馈：页面内容错误、图片或链接问题、希望新增的栏目。为了保护隐私，不建议在公开网页上收集身份证号、手机号、班级详细名单等敏感信息。</p>
+            <ul class="detail-list">
+              <li>内容纠错：说明哪一页、哪一段、建议如何修改。</li>
+              <li>素材投稿：提供照片来源、拍摄地点、是否允许公开展示。</li>
+              <li>栏目建议：说明希望新增什么页面、谁会使用、需要哪些资料。</li>
+            </ul>
+          </div>
+          <div class="map-actions">
+            <a href="portal.html?page=campus-map">查看地图</a>
+            <a class="secondary" href="portal.html?page=campus-gallery">查看校园照片</a>
+          </div>`
+      },
+      notices:{
+        title:"通知公告",
+        crumb:"通知公告",
+        kicker:"Notices",
+        hero:"url('bjzx-news-1.jpg')",
+        summary:"集中展示站内公告入口，让快速通道不再停留在文字状态。",
+        html:`
+          <h2 class="section-title">通知公告</h2>
+          <p class="lead">这里用于放置站内公告、活动提醒和栏目更新。它应该承担“站内更新中心”的作用：访问者进入后能知道网站最近加了什么、哪些信息值得马上看、哪些内容只是学生展示而不是官方发布。</p>
+          <div class="notice-list">
+            <a class="notice" href="news-detail.html?id=1"><time>2026.07</time><h3>“1+3”培养实验录取公告</h3><p>查看项目录取公告详情。</p></a>
+            <a class="notice" href="portal.html?page=campus-map"><time>2026.06</time><h3>真实地图入口上线</h3><p>查看北京中学西坝河校区在线地图。</p></a>
+            <a class="notice" href="portal.html?page=campus-gallery"><time>2026.06</time><h3>高清校园照片墙上线</h3><p>查看来自学校官网校园风景栏目的原图入口。</p></a>
+            <a class="notice" href="portal.html?page=student-life"><time>2026.06</time><h3>学生天地栏目开放</h3><p>了解社团、运动、艺术和学生声音。</p></a>
+          </div>
+          <div class="rich-section">
+            <h3>公告发布规范</h3>
+            <ul class="detail-list">
+              <li>标题要清楚说明事项，不使用夸张或容易误解的说法。</li>
+              <li>时间要写明年月，涉及具体安排时应写完整日期和适用对象。</li>
+              <li>正式通知要标明来源；学生站内更新要写成“观察站更新”或“栏目更新”。</li>
+              <li>过期内容可以保留，但需要加上“历史信息”提示，避免读者误以为仍然有效。</li>
+            </ul>
+          </div>`
+      },
+      "home-school":{
+        title:"家校联盟",
+        crumb:"家校联盟",
+        kicker:"Home School",
+        hero:"url('bjzx-tour-community.jpg')",
+        summary:"连接家庭、学校与学生成长共同体，展示协作支持方式。",
+        html:`
+          <h2 class="section-title">共同支持学生成长</h2>
+          <p class="lead">家校联盟页面用于承接页脚入口，展示家校沟通、成长陪伴和活动参与等内容。这个栏目不需要写成正式公文，可以更像“家长和学生都能看懂的协作说明”。</p>
+          <div class="feature-grid">
+            <div class="feature"><em>Communication</em><h3>沟通机制</h3><p>围绕学生状态、学习节奏和成长目标形成稳定交流。</p></div>
+            <div class="feature"><em>Support</em><h3>成长支持</h3><p>家庭和学校共同关注身心健康、时间管理和兴趣发展。</p></div>
+            <div class="feature"><em>Activity</em><h3>活动参与</h3><p>通过讲座、开放日和项目展示理解学校生活。</p></div>
+            <div class="feature"><em>Trust</em><h3>彼此信任</h3><p>用清晰信息和持续陪伴减少不确定感。</p></div>
+          </div>
+          <div class="rich-section">
+            <h3>家校协作可以关注什么</h3>
+            <p>一个学生的成长不只发生在课堂里。家庭可以帮助学生建立稳定作息、阅读习惯和情绪支持；学校可以提供课程资源、同伴环境和公共表达机会；学生自己则需要学会计划、复盘和沟通。</p>
+            <ul class="detail-list">
+              <li>学习节奏：帮助学生区分长期任务和短期作业，避免只被截止日期推着走。</li>
+              <li>兴趣发展：尊重学生在社团、阅读、运动和项目中的尝试，允许探索有试错。</li>
+              <li>沟通方式：遇到问题先描述事实和感受，再讨论选择，而不是直接给结论。</li>
+              <li>成果展示：鼓励学生把作品、记录和反思整理出来，形成可回看的成长档案。</li>
+            </ul>
+          </div>
+          <div class="forum-post"><span>Parent Guide</span><strong>如何读懂学生的项目作品？</strong><p>不要只看作品是否精致，也要看问题是否真实、资料是否可靠、分工是否清楚、修改是否有依据。</p></div>`
+      },
+      international:{
+        title:"国际教育",
+        crumb:"国际教育",
+        kicker:"International",
+        hero:"url('bjzx-news-2.jpg')",
+        summary:"以中国根基与国际视野并重，呈现跨文化学习和世界课堂。",
+        html:`
+          <h2 class="section-title">面向世界的学习</h2>
+          <p class="lead">国际教育页面延展首页“国际理解与世界课堂”的内容，关注语言表达、跨文化沟通和全球议题理解。它不是单纯展示“出国”或“英文”，而是帮助学生在中国根基之上理解更大的世界。</p>
+          <div class="image-band" style="--band-image:url('bjzx-news-2.jpg')"></div>
+          <div class="feature-grid">
+            <div class="feature"><em>Language</em><h3>语言与表达</h3><p>在阅读、演讲和写作中练习清晰表达。</p></div>
+            <div class="feature"><em>Culture</em><h3>跨文化理解</h3><p>从不同文化经验中学习尊重和判断。</p></div>
+            <div class="feature"><em>World</em><h3>全球议题</h3><p>把校园学习连接到环境、科技、城市和公共生活。</p></div>
+            <a class="feature" href="news-detail.html?id=2"><em>Story</em><h3>毕业典礼</h3><p>阅读国际部 2026 届毕业典礼动态。</p></a>
+          </div>
+          <div class="rich-section">
+            <h3>可以建设的内容方向</h3>
+            <ul class="detail-list">
+              <li>双语表达：发布学生演讲稿、读书笔记、项目摘要和跨文化观察。</li>
+              <li>世界课堂：围绕环境、城市、科技、艺术等议题整理学习材料和讨论问题。</li>
+              <li>毕业去向与成长故事：以个人经验为线索，记录选择过程和学习反思。</li>
+              <li>交流活动：记录讲座、工作坊、国际交流项目和学生展示。</li>
+            </ul>
+          </div>
+          <div class="quote-card">真正的国际视野，不是离开自己的语境，而是带着清楚的自我认识去理解更复杂的世界。</div>`
+      }
+    };
+
+    const sourceGroups = {
+      official:[
+        ["北京中学官网首页","https://www.beijingacademy.com.cn/"],
+        ["北京中学官网校园概况栏目","https://www.beijingacademy.com.cn/cms/bjzx/xygk/index.jhtml"]
+      ],
+      news:[
+        ["北京中学官网最新动态列表","https://www.beijingacademy.com.cn/cms/bjzx/zxdt1/index.jhtml"],
+        ["北京中学科技分校2026年“1+3”录取公告","https://www.beijingacademy.com.cn/cms/bjzx/zxdt1/3904.jhtml"]
+      ],
+      campus:[
+        ["北京中学官网西坝河校区校园风景","https://www.beijingacademy.com.cn/cms/bjzx/xbhxq/80.jhtml"],
+        ["高德地图 北京中学西坝河校区","https://uri.amap.com/search?keyword=%E5%8C%97%E4%BA%AC%E4%B8%AD%E5%AD%A6%20%E8%A5%BF%E5%9D%9D%E6%B2%B3%E6%A0%A1%E5%8C%BA"],
+        ["高德地图 北京中学东坝南校区","https://uri.amap.com/search?keyword=%E5%8C%97%E4%BA%AC%E4%B8%AD%E5%AD%A6%20%E4%B8%9C%E5%9D%9D%E5%8D%97%E6%A0%A1%E5%8C%BA"]
+      ],
+      sections:[
+        ["北京中学官网课程教学栏目","https://www.beijingacademy.com.cn/cms/bjzx/kcjx/index.jhtml"],
+        ["北京中学官网学生天地栏目","https://www.beijingacademy.com.cn/cms/bjzx/xstd/index.jhtml"],
+        ["北京中学官网家校联盟栏目","https://www.beijingacademy.com.cn/cms/bjzx/jxlm/index.jhtml"],
+        ["北京中学官网国际教育栏目","https://www.beijingacademy.com.cn/cms/bjzx/gjjy/index.jhtml"]
+      ],
+      stickers:[
+        ["Wikimedia Commons 公开图片素材","https://commons.wikimedia.org/"],
+        ["Memegen 在线 meme 图片生成","https://api.memegen.link/"],
+        ["OpenMoji 表情素材","https://openmoji.org/"]
+      ]
+    };
+
+    const pageSources = {
+      news:["news"],
+      about:["official"],
+      intro:["official"],
+      philosophy:["official"],
+      academics:["sections","official"],
+      curriculum:["sections","official"],
+      "project-learning":["sections","official"],
+      research:["sections","official","news"],
+      "student-life":["sections","official"],
+      "campus-tour":["campus","official"],
+      "campus-gallery":["campus"],
+      "campus-map":["campus"],
+      admissions:["news","official"],
+      contact:["official","campus"],
+      notices:["news","campus"],
+      "home-school":["sections","official"],
+      international:["sections","news","official"],
+      forum:["sections","stickers"],
+      admin:["sections","stickers"]
+    };
+
+    const aliases = {
+      "school-intro":"intro",
+      "campus":"campus-tour",
+      "student":"student-life"
+    };
+    const params = new URLSearchParams(window.location.search);
+    const requested = params.get("page") || "news";
+    const pageKey = pages[requested] ? requested : (aliases[requested] || "news");
+    const page = pages[pageKey];
+
+    document.title = `${page.title} | 北中观察站`;
+    document.getElementById("page-hero").style.setProperty("--hero-image", page.hero);
+    document.getElementById("crumb").textContent = page.crumb;
+    document.getElementById("kicker").textContent = page.kicker;
+    document.getElementById("title").textContent = page.title;
+    document.getElementById("summary").textContent = page.summary;
+    const sourceHtml = (pageSources[pageKey] || ["official"]).flatMap(group => sourceGroups[group] || [])
+      .map(([label,url]) => `<li><a href="${url}" target="_blank" rel="noopener">${label}</a></li>`)
+      .join("");
+    document.getElementById("content").innerHTML = page.html + `
+      <div class="source-note">
+        <h3>资料来源与核验说明</h3>
+        <p>本页涉及学校名称、官网栏目、新闻标题、地址电话、校园照片来源等事实性内容，均按下列公开网页核验。页面中的“栏目建议、投稿规范、维护建议、讨论题”等属于北中观察站的网站功能设计说明，不冒充学校官方事实。</p>
+        <ul>${sourceHtml}</ul>
+      </div>
+      <a class="back-link" href="index.html">返回首页</a>`;
+
+    const navGroups = [
+      ["news","最新动态"],["about","学校概况"],["intro","学校简介"],["philosophy","办学理念"],
+      ["academics","教学科研"],["curriculum","课程体系"],["project-learning","项目学习"],["research","教学研究"],
+      ["campus-tour","校园导览"],["campus-gallery","高清照片墙"],["campus-map","查看地图"],["student-life","学生天地"],["forum","学生论坛"],["admin","论坛后台"],["home-school","家校联盟"],
+      ["international","国际教育"],["admissions","招生信息"],["notices","通知公告"],["contact","联系我们"]
+    ];
+    const sideLinks = document.getElementById("side-links");
+    navGroups.forEach(([key,label])=>{
+      const li = document.createElement("li");
+      li.innerHTML = `<a class="${key === pageKey ? "active" : ""}" href="portal.html?page=${key}">${label}</a>`;
+      sideLinks.appendChild(li);
+    });
+
+    const scrollProgress = document.querySelector(".scroll-progress");
+    const backToTop = document.getElementById("back-to-top");
+    const updateScrollEffects = ()=>{
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = maxScroll > 0 ? (window.scrollY / maxScroll) * 100 : 0;
+      if (scrollProgress) scrollProgress.style.width = `${progress}%`;
+      document.body.classList.toggle("is-scrolled", window.scrollY > 24);
+      if (backToTop) backToTop.classList.toggle("show", window.scrollY > 520);
+    };
+    updateScrollEffects();
+    window.addEventListener("scroll", updateScrollEffects, {passive:true});
+    if (backToTop) {
+      backToTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smooth"}));
+    }
+
+    async function initOfficialNews(){
+      if (pageKey !== "news") return;
+      const status = document.getElementById("official-news-status");
+      const list = document.getElementById("official-news-list");
+      if (!status || !list) return;
+      if (location.protocol === "file:") {
+        status.textContent = "当前是直接打开 HTML 文件，浏览器不允许稳定跨域抓取官网。运行 server.js 后用 http://localhost:8787 打开，就会自动同步官网最新动态。";
+        return;
+      }
+      try {
+        status.textContent = "正在从北京中学官网读取最新动态...";
+        const response = await fetch("/api/news/official?limit=8");
+        if (!response.ok) throw new Error("official news request failed");
+        const data = await response.json();
+        const items = Array.isArray(data.items) ? data.items : [];
+        if (!items.length) {
+          status.textContent = "暂时没有读取到官网动态。";
+          return;
+        }
+        status.textContent = `已同步官网最新动态 ${items.length} 条，更新时间：${escapeHtml(data.fetchedAt || "")}`;
+        list.innerHTML = items.map(item => `
+          <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">
+            <time>${escapeHtml(item.date || "官网")}</time>
+            <span>${escapeHtml(item.title)}</span>
+          </a>
+        `).join("");
+      } catch (error) {
+        console.error(error);
+        status.textContent = "官网动态同步失败：请确认本地服务器正在运行，或稍后再试。";
+      }
+    }
+
+    initOfficialNews();
+
+    function initCampusMap(){
+      if (pageKey !== "campus-map") return;
+      const canvas = document.getElementById("campus-map-canvas");
+      const list = document.getElementById("campus-locator-list");
+      const frame = document.getElementById("campus-map-frame");
+      const frameTitle = document.getElementById("campus-map-frame-title");
+      if (!canvas || !list) return;
+      const campuses = [
+        {
+          name:"西坝河校区",
+          status:"已核验地址",
+          desc:"北京市朝阳区西坝河东里1号，官网页脚明确写出。",
+          coords:[39.968473,116.448042],
+          query:"北京中学 西坝河东里1号"
+        },
+        {
+          name:"东坝南校区",
+          status:"已加入地图标点",
+          desc:"地图平台检索点位用于路线参考，正式到访以学校通知为准。",
+          coords:[39.967892,116.556088],
+          query:"北京中学 东坝南校区"
+        },
+        {
+          name:"东坝初中",
+          status:"已加入地图标点",
+          desc:"地图平台搜索定位用于路线参考，正式到访以学校通知为准。",
+          coords:[39.9597,116.5538],
+          query:"北京中学 东坝初中"
+        },
+        {
+          name:"红松园校区",
+          status:"已加入地图标点",
+          desc:"地图平台搜索定位用于路线参考，正式到访以学校通知为准。",
+          coords:[39.9627,116.5512],
+          query:"北京中学 红松园校区"
+        },
+        {
+          name:"明德校区",
+          status:"已加入地图标点",
+          desc:"地图平台搜索定位用于路线参考，正式到访以学校通知为准。",
+          coords:[39.9639,116.5532],
+          query:"北京中学 明德校区"
+        }
+      ];
+      const frameUrl = query => `https://ditu.amap.com/search?query=${encodeURIComponent(query)}&src=uriapi&innersrc=uriapi`;
+      list.innerHTML = campuses.map((campus, index) => `
+        <li>
+          <button type="button" data-campus-index="${index}">
+            <strong>${escapeHtml(campus.name)}</strong>
+            <span>${escapeHtml(campus.status)} · ${escapeHtml(campus.desc)}</span>
+          </button>
+        </li>
+      `).join("");
+
+      const fallbackHtml = `
+        <div class="campus-map-panel" style="height:100%;border-left:0">
+          <h3>校区地图搜索</h3>
+          <p>地图组件加载失败时，可直接使用右侧校区列表打开真实地图搜索。</p>
+        </div>`;
+      const showFallback = () => { canvas.innerHTML = fallbackHtml; };
+
+      let map = null;
+      const markerByIndex = new Map();
+      const setFrame = campus => {
+        if (frame) frame.src = frameUrl(campus.query);
+        if (frameTitle) frameTitle.textContent = `${campus.name}地图视图`;
+      };
+      if (window.L) {
+        map = L.map(canvas, {scrollWheelZoom:false}).setView([39.9684,116.4480], 13);
+        L.tileLayer("https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}", {
+          subdomains:["1","2","3","4"],
+          maxZoom:19,
+          attribution:"高德地图"
+        }).addTo(map);
+        campuses.forEach((campus, index) => {
+          if (!campus.coords) return;
+          const marker = L.marker(campus.coords).addTo(map)
+            .bindPopup(`<strong>${campus.name}</strong><br>${campus.desc}<br>下方同步显示站内地图搜索结果。`);
+          markerByIndex.set(index, marker);
+        });
+        const confirmed = campuses.filter(campus => campus.coords).map(campus => campus.coords);
+        if (confirmed.length > 1) map.fitBounds(confirmed, {padding:[42,42]});
+        setTimeout(() => map.invalidateSize(), 120);
+      } else {
+        showFallback();
+      }
+
+      list.addEventListener("click", event => {
+        const button = event.target.closest("button[data-campus-index]");
+        if (!button) return;
+        list.querySelectorAll("button").forEach(item => item.classList.remove("active"));
+        button.classList.add("active");
+        const campus = campuses[Number(button.dataset.campusIndex)];
+        setFrame(campus);
+        const marker = markerByIndex.get(Number(button.dataset.campusIndex));
+        if (map && marker && campus.coords) {
+          map.setView(campus.coords, 16);
+          marker.openPopup();
+          return;
+        }
+      });
+    }
+
+    window.addEventListener("load", initCampusMap);
+
+    const revealEls = document.querySelectorAll(".reveal,.feature,.notice,.timeline article");
+    if ("IntersectionObserver" in window) {
+      const observer = new IntersectionObserver((entries)=>{
+        entries.forEach(entry=>{
+          if (entry.isIntersecting) {
+            entry.target.classList.add("in-view");
+            observer.unobserve(entry.target);
+          }
+        });
+      }, {threshold:.03, rootMargin:"0px 0px -8% 0px"});
+      revealEls.forEach((el,index)=>{
+        el.classList.add("reveal");
+        el.style.transitionDelay = `${Math.min(index * 45, 360)}ms`;
+        observer.observe(el);
+      });
+    } else {
+      revealEls.forEach(el=>el.classList.add("in-view"));
+    }
+
+    const memeUrl = (template, top, bottom = "") =>
+      `https://api.memegen.link/images/${template}/${encodeURIComponent(top)}/${encodeURIComponent(bottom || "_")}.png`;
+    const commonsFile = file =>
+      `https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(file)}`;
+    const stickerSvg = (title, sub, accent = "#b50018", bg = "#101114") => {
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="420" height="280" viewBox="0 0 420 280">
+        <defs>
+          <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0" stop-color="${bg}"/>
+            <stop offset="1" stop-color="${accent}"/>
+          </linearGradient>
+          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity=".28"/>
+          </filter>
+        </defs>
+        <rect width="420" height="280" rx="34" fill="url(#g)"/>
+        <circle cx="340" cy="40" r="72" fill="#fff" opacity=".10"/>
+        <circle cx="68" cy="236" r="88" fill="#fff" opacity=".08"/>
+        <path d="M32 56h356M32 224h356" stroke="#fff" stroke-opacity=".18" stroke-width="2"/>
+        <text x="210" y="132" text-anchor="middle" font-family="PingFang SC, Microsoft Yahei, sans-serif" font-size="44" font-weight="900" fill="#fff" filter="url(#shadow)">${title}</text>
+        <text x="210" y="184" text-anchor="middle" font-family="PingFang SC, Microsoft Yahei, sans-serif" font-size="24" font-weight="800" fill="#fff" opacity=".86">${sub}</text>
+      </svg>`;
+      return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+    };
+    const stickerCard = (title, sub = "", accent = "#b50018") => {
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="420" height="280" viewBox="0 0 420 280">
+        <rect width="420" height="280" rx="18" fill="#fff"/>
+        <rect x="14" y="14" width="392" height="252" rx="14" fill="#151515"/>
+        <rect x="28" y="28" width="364" height="224" rx="10" fill="${accent}" opacity=".13"/>
+        <path d="M36 64h348M36 216h348" stroke="${accent}" stroke-width="4"/>
+        <text x="210" y="136" text-anchor="middle" font-family="PingFang SC, Microsoft Yahei, sans-serif" font-size="46" font-weight="900" fill="#fff">${title}</text>
+        <text x="210" y="184" text-anchor="middle" font-family="PingFang SC, Microsoft Yahei, sans-serif" font-size="24" font-weight="900" fill="${accent}">${sub}</text>
+      </svg>`;
+      return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+    };
+    const forumStickers = [
+      {name:"哈基米卡片", code:"[哈基米]", kind:"card", tags:"新梗 潮流 哈基米 可爱 魔性 卡片", url:stickerCard("哈基米","可爱但魔性","#ff4d8d")},
+      {name:"Doro卡片", code:"[Doro]", kind:"card", tags:"新梗 潮流 doro 抽象 乱入 卡片", url:stickerCard("Doro乱入","这波很抽象","#8b5cf6")},
+      {name:"奶龙卡片", code:"[奶龙]", kind:"card", tags:"新梗 潮流 奶龙 可爱 探头 卡片", url:stickerCard("奶龙探头","看看发生了什么","#f59e0b")},
+      {name:"乌萨奇卡片", code:"[乌萨奇]", kind:"card", tags:"新梗 潮流 乌萨奇 尖叫 震惊 卡片", url:stickerCard("乌萨奇尖叫","这也太突然了","#06b6d4")},
+      {name:"已读乱回卡片", code:"[已读乱回]", kind:"card", tags:"新梗 潮流 已读乱回 聊天 回复 卡片", url:stickerCard("已读乱回","但态度很好","#22c55e")},
+      {name:"小孩哥卡片", code:"[小孩哥]", kind:"card", tags:"新梗 潮流 小孩哥 厉害 卡片", url:stickerCard("小孩哥上线","直接拿下","#ef4444")},
+      {name:"草台班子卡片", code:"[草台班子]", kind:"card", tags:"新梗 潮流 草台班子 崩溃 卡片", url:stickerCard("草台班子","稳定运行","#64748b")},
+      {name:"显眼包卡片", code:"[显眼包]", kind:"card", tags:"新梗 潮流 显眼包 搞笑 卡片", url:stickerCard("显眼包","但很有用","#14b8a6")},
+      {name:"尊嘟假嘟", code:"[尊嘟假嘟]", kind:"meme", tags:"潮流 最近 震惊 疑问", url:memeUrl("kombucha", "尊嘟假嘟", "这是真的吗")},
+      {name:"我嘞个豆", code:"[我嘞个豆]", kind:"meme", tags:"潮流 震惊 惊讶", url:memeUrl("mw", "我嘞个豆", "有点东西")},
+      {name:"汗流浃背了", code:"[汗流浃背]", kind:"meme", tags:"潮流 紧张 作业 压力", url:memeUrl("headaches", "汗流浃背了", "这题不简单")},
+      {name:"绷不住了", code:"[绷不住]", kind:"meme", tags:"潮流 搞笑 崩溃", url:memeUrl("cryingfloor", "绷不住了", "先让我缓缓")},
+      {name:"好好好", code:"[好好好]", kind:"meme", tags:"潮流 无语 赞同", url:memeUrl("wonka", "好好好", "这么玩是吧")},
+      {name:"已老实", code:"[已老实]", kind:"meme", tags:"潮流 老实 学习 作业", url:memeUrl("sad-biden", "已老实", "马上学习")},
+      {name:"包稳的", code:"[包稳]", kind:"meme", tags:"潮流 稳了 鼓励", url:memeUrl("success", "包稳的", "问题不大")},
+      {name:"真的会谢", code:"[会谢]", kind:"meme", tags:"潮流 无语 崩溃", url:memeUrl("facepalm", "真的会谢", "但还得写")},
+      {name:"CPU 烧了", code:"[CPU烧了]", kind:"meme", tags:"潮流 学习 思考 震惊", url:memeUrl("blb", "CPU烧了", "我再想想")},
+      {name:"松弛感", code:"[松弛感]", kind:"meme", tags:"潮流 放松 开心", url:memeUrl("kermit", "松弛感", "慢慢来比较快")},
+      {name:"电子木鱼", code:"[电子木鱼]", kind:"meme", tags:"潮流 摸鱼 放松", url:memeUrl("stonks", "电子木鱼", "功德+1")},
+      {name:"先别上价值", code:"[别上价值]", kind:"meme", tags:"潮流 讨论 冷静", url:memeUrl("cmm", "先别上价值", "先讲事实")},
+      {name:"撤回重发", code:"[撤回重发]", kind:"meme", tags:"潮流 投稿 修改", url:memeUrl("rollsafe", "撤回重发", "我还能改")},
+      {name:"顶级理解", code:"[顶级理解]", kind:"meme", tags:"潮流 学习 赞", url:memeUrl("leo", "顶级理解", "这波可以")},
+      {name:"学习搭子", code:"[学习搭子]", kind:"meme", tags:"潮流 学习 同学", url:memeUrl("both", "学习", "搭子")},
+      {name:"人生加载中", code:"[加载中]", kind:"meme", tags:"潮流 等等 思考", url:memeUrl("noidea", "人生加载中", "请稍等")},
+      {name:"这很难评", code:"[难评]", kind:"meme", tags:"潮流 无语 讨论", url:memeUrl("awkward", "这很难评", "但可以讨论")},
+      {name:"有点抽象", code:"[抽象]", kind:"meme", tags:"潮流 抽象 搞笑", url:memeUrl("aag", "有点抽象", "展开讲讲")},
+      {name:"开摆一分钟", code:"[开摆]", kind:"meme", tags:"潮流 摸鱼 放松", url:memeUrl("fine", "开摆一分钟", "然后继续")},
+      {name:"情绪稳定", code:"[情绪稳定]", kind:"meme", tags:"潮流 冷静 稳定", url:memeUrl("panik-kalm-panik", "情绪稳定", "冷静发言")},
+      {name:"有来源", code:"[有来源]", kind:"meme", tags:"来源 真实 资料 核验", url:memeUrl("drake","空话","有来源的发言")},
+      {name:"学习计划", code:"[学习计划]", kind:"meme", tags:"学习 计划 稳了", url:memeUrl("stonks","学习计划","稳了")},
+      {name:"论坛到处都是", code:"[论坛]", kind:"meme", tags:"论坛 讨论 热闹", url:memeUrl("buzz","论坛","论坛到处都是")},
+      {name:"今日学习", code:"[今日学习]", kind:"meme", tags:"学习 精神 doge", url:memeUrl("doge","今天的学习","很有精神")},
+      {name:"作业来了", code:"[作业来了]", kind:"meme", tags:"作业 冷静 压力", url:memeUrl("disastergirl","作业来了","我很冷静")},
+      {name:"我有一个想法", code:"[有想法]", kind:"meme", tags:"想法 投稿 发帖", url:memeUrl("spongebob","我有一个想法","先发到论坛")},
+      {name:"讨论开始", code:"[讨论开始]", kind:"meme", tags:"讨论 回复 热门", url:memeUrl("oprah","你来讨论","大家都来讨论")},
+      {name:"先别急", code:"[先别急]", kind:"meme", tags:"冷静 来源 查证", url:memeUrl("fine","先别急","先查来源")},
+      {name:"这题会了", code:"[会了]", kind:"meme", tags:"学习 开心 成功", url:memeUrl("success","这题","会了")},
+      {name:"资料找到了", code:"[资料]", kind:"meme", tags:"资料 作业 整理", url:memeUrl("blb","资料找到了","但是要整理")},
+      {name:"我全都要", code:"[全都要]", kind:"meme", tags:"选择 全都要 贪心", url:memeUrl("both","课程","论坛")},
+      {name:"不明觉厉", code:"[不明觉厉]", kind:"meme", tags:"厉害 震惊 学术", url:memeUrl("aag","看完这个项目","不明觉厉")},
+      {name:"裂开", code:"[裂开]", kind:"meme", tags:"崩溃 裂开 作业", url:memeUrl("cryingfloor","作业还没写完","我先裂开")},
+      {name:"可以但先等等", code:"[先等等]", kind:"meme", tags:"等等 冷静 审核", url:memeUrl("ackbar","先别发","这可能没来源")},
+      {name:"这很合理", code:"[合理]", kind:"meme", tags:"合理 赞同 讨论", url:memeUrl("awesome","这个建议","很合理")},
+      {name:"我看懂了", code:"[看懂了]", kind:"meme", tags:"懂了 学会 明白", url:memeUrl("fry","我可能","看懂了")},
+      {name:"别卷了", code:"[别卷了]", kind:"meme", tags:"学习 放松 卷", url:memeUrl("keanu","别卷了","休息一下")},
+      {name:"问题不大", code:"[问题不大]", kind:"meme", tags:"安慰 还行 问题", url:memeUrl("icanhas","问题不大","还能改")},
+      {name:"资料太多", code:"[资料太多]", kind:"meme", tags:"资料 多 整理", url:memeUrl("mordor","整理资料","不是那么容易")},
+      {name:"我赞成", code:"[赞成]", kind:"meme", tags:"赞成 点赞 支持", url:memeUrl("oprah","你有点赞","你也有点赞")},
+      {name:"冷静一下", code:"[冷静]", kind:"meme", tags:"冷静 panik kalm 审核", url:memeUrl("panik-kalm-panik","看到没来源爆料","先冷静核实")},
+      {name:"认真听我说", code:"[认真听]", kind:"meme", tags:"讨论 建议 认真", url:memeUrl("rollsafe","先把问题说清楚","讨论才会有效")},
+      {name:"这个可以有", code:"[可以有]", kind:"meme", tags:"赞同 支持 开心", url:memeUrl("wonka","这个建议","听起来可以有")},
+      {name:"你为什么不", code:"[为什么不]", kind:"meme", tags:"提问 建议 讨论", url:memeUrl("yuno","你为什么不","直接发到论坛")},
+      {name:"摸鱼失败", code:"[摸鱼失败]", kind:"meme", tags:"摸鱼 作业 学习", url:memeUrl("philosoraptor","如果我在摸鱼","为什么作业还在增加")},
+      {name:"突然懂了", code:"[突然懂了]", kind:"meme", tags:"学习 懂了 开心", url:memeUrl("mw","老师一讲","突然懂了")},
+      {name:"这很关键", code:"[关键]", kind:"meme", tags:"重点 资料 学习", url:memeUrl("morpheus","如果我告诉你","来源比结论更重要")},
+      {name:"先看资料", code:"[看资料]", kind:"meme", tags:"资料 来源 查证", url:memeUrl("fetch","先看资料","再开始讨论")},
+      {name:"今天也努力了", code:"[努力了]", kind:"meme", tags:"学习 开心 鼓励", url:memeUrl("feelsgood","今天也努力了","感觉不错")},
+      {name:"课堂高光", code:"[高光]", kind:"meme", tags:"课堂 展示 高光", url:memeUrl("leo","这个展示","值得鼓掌")},
+      {name:"一脸震惊", code:"[震惊]", kind:"meme", tags:"震惊 惊讶 热门", url:memeUrl("interesting","这个细节","居然是真的")},
+      {name:"请开始你的发言", code:"[请发言]", kind:"meme", tags:"讨论 发言 回复", url:memeUrl("joker","请开始","你的发言")},
+      {name:"我不太懂", code:"[不懂]", kind:"meme", tags:"疑问 提问 学习", url:memeUrl("noidea","我不太懂","但我想问")},
+      {name:"太真实了", code:"[真实]", kind:"meme", tags:"真实 校园 赞同", url:memeUrl("nice","这也太真实了","建议置顶")},
+      {name:"退出摸鱼", code:"[退出摸鱼]", kind:"meme", tags:"摸鱼 学习 作业", url:memeUrl("exit","摸鱼","开始写作业")},
+      {name:"作业山", code:"[作业山]", kind:"meme", tags:"作业 压力 整理", url:memeUrl("toohigh","作业数量","有点高")},
+      {name:"这个锅不是我的", code:"[不是我的锅]", kind:"meme", tags:"玩笑 讨论 解释", url:memeUrl("spiderman","不是我","是另一个我")},
+      {name:"别急着转发", code:"[别转发]", kind:"meme", tags:"谣言 来源 查证", url:memeUrl("sadfrog","先别转发","先确认来源")},
+      {name:"灵感来了", code:"[灵感]", kind:"meme", tags:"灵感 创意 投稿", url:memeUrl("bongo","灵感来了","马上写下来")},
+      {name:"我需要答案", code:"[需要答案]", kind:"meme", tags:"提问 答疑 学习", url:memeUrl("crazypills","这个问题","我需要答案")},
+      {name:"隐藏高手", code:"[高手]", kind:"meme", tags:"厉害 学习 赞", url:memeUrl("chosen","看似普通同学","其实是隐藏高手")},
+      {name:"今日破防", code:"[破防]", kind:"meme", tags:"破防 作业 崩溃", url:memeUrl("imsorry","我以为写完了","其实还有一页")},
+      {name:"老师点名", code:"[点名]", kind:"meme", tags:"课堂 紧张 回答", url:memeUrl("afraid","老师看向我","我还没想好")},
+      {name:"计划很好", code:"[计划很好]", kind:"meme", tags:"计划 执行 学习", url:memeUrl("gru","制定计划","打开手机")},
+      {name:"正经建议", code:"[正经建议]", kind:"meme", tags:"建议 讨论 严肃", url:memeUrl("dwight","这是一个","正经建议")},
+      {name:"离谱但有用", code:"[有用]", kind:"meme", tags:"有用 震惊 方法", url:memeUrl("ermg","这个方法","居然有用")},
+      {name:"等一下", code:"[等一下]", kind:"meme", tags:"等等 查证 来源", url:memeUrl("patrick","等一下","先把来源贴出来")},
+      {name:"压力来了", code:"[压力]", kind:"meme", tags:"压力 作业 学习", url:memeUrl("drowning","ddl靠近","我开始紧张")},
+      {name:"好问题", code:"[好问题]", kind:"meme", tags:"提问 讨论 学习", url:memeUrl("captain","这是一个","好问题")},
+      {name:"我来补充", code:"[补充]", kind:"meme", tags:"回复 补充 资料", url:memeUrl("hagrid","我来补充一点","可能有用")},
+      {name:"微笑", code:"[微笑]", kind:"emoji", tags:"开心 微笑", url:"https://cdn.jsdelivr.net/npm/openmoji@15.0.0/color/svg/1F600.svg"},
+      {name:"点赞", code:"[点赞]", kind:"emoji", tags:"赞 同意", url:"https://cdn.jsdelivr.net/npm/openmoji@15.0.0/color/svg/1F44D.svg"},
+      {name:"鼓掌", code:"[鼓掌]", kind:"emoji", tags:"鼓掌 厉害", url:"https://cdn.jsdelivr.net/npm/openmoji@15.0.0/color/svg/1F44F.svg"},
+      {name:"星星眼", code:"[星星眼]", kind:"emoji", tags:"喜欢 惊喜", url:"https://cdn.jsdelivr.net/npm/openmoji@15.0.0/color/svg/1F929.svg"},
+      {name:"思考", code:"[思考]", kind:"emoji", tags:"思考 问题", url:"https://cdn.jsdelivr.net/npm/openmoji@15.0.0/color/svg/1F914.svg"},
+      {name:"火花", code:"[火花]", kind:"emoji", tags:"灵感 火花", url:"https://cdn.jsdelivr.net/npm/openmoji@15.0.0/color/svg/2728.svg"},
+      {name:"笑哭", code:"[笑哭]", kind:"emoji", tags:"开心 搞笑", url:"https://cdn.jsdelivr.net/npm/openmoji@15.0.0/color/svg/1F602.svg"},
+      {name:"捂脸", code:"[捂脸]", kind:"emoji", tags:"无语 尴尬", url:"https://cdn.jsdelivr.net/npm/openmoji@15.0.0/color/svg/1F926.svg"},
+      {name:"火", code:"[火]", kind:"emoji", tags:"热门 厉害", url:"https://cdn.jsdelivr.net/npm/openmoji@15.0.0/color/svg/1F525.svg"},
+      {name:"一百分", code:"[一百分]", kind:"emoji", tags:"满分 优秀", url:"https://cdn.jsdelivr.net/npm/openmoji@15.0.0/color/svg/1F4AF.svg"}
+    ];
+    const forumSensitiveWords = [
+      "傻子","傻逼","傻比","沙比","沙逼","煞笔","傻叉","蠢货","白痴","智障","垃圾人","滚蛋","滚开","去死","死全家","废物","脑残","弱智",
+      "sb","s逼","s比","shabi","sha bi","傻b","傻 b","沙b","沙 b","煞b","煞 b","nt","nmsl","尼玛","你妈","他妈","tm","tmd",
+      "我草","我操","卧槽","卧草","窝草","握草","雾草","wocao","wo cao","woc","wc","艹你","草你","操你",
+      "打架","约架","群殴","霸凌","欺凌","网暴","人身攻击","威胁","恐吓","报复","砍人","杀人","炸学校","放火","自残","自杀",
+      "色情","黄图","黄色网站","裸照","裸聊","约炮","赌博","博彩","赌球","毒品","吸毒","贩毒","迷药",
+      "骚逼","骚比","骚b","小骚逼","小骚比","小骚b","贱逼","贱比","贱b","淫荡","淫秽","下流话","性骚扰",
+      "作弊","代考","卖答案","买答案","答案群","泄题","枪手代写","代写作业","代写论文","考试答案",
+      "人肉","开盒","盒武器","身份证号","手机号泄露","家庭住址","偷拍视频","偷拍","偷拍视频","隐私照",
+      "冒充官方","假通知","假公告","谣言","造谣","钓鱼链接","诈骗","刷单","贷款","网赌","网贷"
+    ];
+    const forumSensitivePatterns = [
+      {label:"辱骂缩写", pattern:/s\\s*\\.?\\s*b/i},
+      {label:"辱骂拼音", pattern:/sha\\s*bi|sha\\s*bei|shabi|shabei/i},
+      {label:"不文明用语", pattern:/wo\\s*cao|wo\\s*cao|w\\s*o\\s*c|w\\s*c|卧\\s*[槽草]|我\\s*[草操]|窝\\s*草|雾\\s*草/i},
+      {label:"人身攻击", pattern:/傻\\s*[子逼比b]|沙\\s*[逼比b]|煞\\s*[笔b]|脑\\s*残|弱\\s*智|智\\s*障/i},
+      {label:"严重性羞辱", pattern:/小?\\s*[骚浪淫贱]\\s*[逼比b货]|性\\s*骚\\s*扰|下\\s*流\\s*话/i},
+      {label:"开盒人肉", pattern:/开\\s*盒|人\\s*肉|盒\\s*武\\s*器|身\\s*份\\s*证|家\\s*庭\\s*住\\s*址/i},
+      {label:"考试作弊", pattern:/卖\\s*答\\s*案|买\\s*答\\s*案|代\\s*考|泄\\s*题|作\\s*弊/i}
+    ];
+    const forumModerationParts = {
+      insultHeads:["傻","沙","煞"],
+      insultTails:["逼","比","b","笔","叉","批"],
+      sexualHeads:["骚","浪","淫","贱","小骚"],
+      sexualTails:["逼","比","b","货"],
+      vulgarHeads:["我","你","他","她","它","草","操","艹","卧","窝","握","雾"],
+      vulgarTails:["草","操","槽","艹","你","妈","爹","全家","大爷"],
+      riskHeads:["打","约","群","网","恐","威","报","砍","杀","炸","烧","偷拍","偷录","开盒","人肉"],
+      riskTails:["架","殴","暴","吓","胁","复","人","学校","教室","同学","老师","隐私","住址"],
+      cheatHeads:["买","卖","求","发","泄","偷","代","替","帮"],
+      cheatTails:["答案","考","写","题","作业","论文","试卷","成绩","分数"],
+      scamHeads:["钓鱼","诈骗","刷单","网贷","网赌","博彩","赌博","赌球","贷款"],
+      scamTails:["链接","群","网站","二维码","账号","平台","广告"]
+    };
+
+    function expandSensitiveWords(words){
+      const separators = [" ",".","-","_","*","·"];
+      const expanded = new Set(words);
+      words.forEach(word => {
+        const chars = Array.from(word);
+        separators.forEach(separator => {
+          if (chars.length > 1) expanded.add(chars.join(separator));
+        });
+      });
+      Object.entries(forumModerationParts).forEach(([key, values]) => {
+        if (!key.endsWith("Heads")) return;
+        const tails = forumModerationParts[key.replace("Heads","Tails")] || [];
+        values.forEach(head => {
+          tails.forEach(tail => {
+            expanded.add(`${head}${tail}`);
+            expanded.add(`${head} ${tail}`);
+            expanded.add(`${head}.${tail}`);
+            expanded.add(`${head}-${tail}`);
+          });
+        });
+      });
+      return Array.from(expanded);
+    }
+    const forumExpandedSensitiveWords = expandSensitiveWords(forumSensitiveWords);
+
+    const forumStorageKey = "bjzxStudentForumPosts";
+    const forumUserKey = "bjzxStudentForumUserId";
+    const forumSessionKey = "bjzxStudentForumSession";
+    const forumCategoryKey = "bjzxStudentForumCategory";
+    const forumCategories = [
+      {id:"all", label:"全部帖子"},
+      {id:"campus", label:"校园生活"},
+      {id:"study", label:"学习互助"},
+      {id:"clubs", label:"社团活动"},
+      {id:"lost", label:"失物招领"},
+      {id:"suggestions", label:"网站建议"},
+      {id:"favorites", label:"我的收藏"}
+    ];
+    const forumServerConfig = {
+      useServer:location.protocol.startsWith("http") && /^(localhost|127\\.0\\.0\\.1)$/.test(location.hostname),
+      baseUrl:"/api/forum",
+      endpoints:{
+        list:"/posts",
+        login:"/auth/login",
+        create:"/posts",
+        like:"/posts/:id/like",
+        report:"/posts/:id/report",
+        reply:"/posts/:id/replies",
+        favorite:"/posts/:id/favorite",
+        deleteReply:"/posts/:id/replies/:replyId",
+        delete:"/posts/:id",
+        upload:"/uploads",
+        adminLogin:"/admin/login",
+        reports:"/reports",
+        sensitiveWords:"/moderation/sensitive-words",
+        clearReports:"/posts/:id/reports",
+        resetReports:"/reports",
+        restoreDemo:"/demo"
+      }
+    };
+    const externalForumConfig = window.bjzxForumServerConfig || {};
+    Object.assign(forumServerConfig, externalForumConfig, {
+      endpoints:{...forumServerConfig.endpoints, ...(externalForumConfig.endpoints || {})}
+    });
+    window.bjzxForumServerConfig = forumServerConfig;
+
+    function getForumUserId(){
+      const session = getForumSession();
+      if (session && session.id) return session.id;
+      let id = localStorage.getItem(forumUserKey);
+      if (!id) {
+        id = `user-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        localStorage.setItem(forumUserKey, id);
+      }
+      return id;
+    }
+
+    function getForumSession(){
+      try {
+        return JSON.parse(localStorage.getItem(forumSessionKey)) || null;
+      } catch {
+        return null;
+      }
+    }
+
+    function saveForumSession(session){
+      localStorage.setItem(forumSessionKey, JSON.stringify(session));
+      localStorage.setItem(forumUserKey, session.id);
+      return session;
+    }
+
+    const defaultForumPosts = [
+      {
+        id:"demo-1",
+        author:"北中观察员",
+        title:"论坛栏目更新建议征集",
+        content:"欢迎围绕校园导览、社团展示、学习经验和活动记录提出建议。[思考]",
+        category:"suggestions",
+        likes:6,
+        likedBy:[],
+        favoritedBy:[],
+        reports:0,
+        reportedBy:[],
+        createdAt:"2026-09-18 18:20",
+        replies:[
+          {id:"reply-demo-1", author:"同学A", content:"社团展示可以补充每个社团的招新说明。[点赞]", createdAt:"2026-09-18 18:31"},
+          {id:"reply-demo-2", author:"同学B", content:"校园导览也很重要，新同学会用得上。", createdAt:"2026-09-18 18:42"}
+        ]
+      },
+      {
+        id:"demo-2",
+        author:"课程记录小组",
+        title:"项目学习成果可以怎么展示？",
+        content:"项目成果可采用网页、海报、地图、访谈整理或短视频脚本等形式。关键是写清楚资料来源和修改过程。[星星眼]",
+        category:"study",
+        likes:4,
+        likedBy:[],
+        favoritedBy:[],
+        reports:0,
+        reportedBy:[],
+        createdAt:"2026-09-18 19:05",
+        replies:[]
+      }
+    ];
+
+    function escapeHtml(value){
+      return String(value).replace(/[&<>"']/g, char => ({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#39;"
+      })[char]);
+    }
+
+    function renderForumText(value){
+      let safe = escapeHtml(value);
+      forumStickers.forEach(sticker => {
+        const className = sticker.kind === "meme" || sticker.kind === "card" ? "inline-meme" : sticker.kind === "vibe" ? "inline-vibe" : "inline-sticker";
+        const stickerHtml = sticker.kind === "photo"
+          ? `<figure class="inline-photo-sticker"><img src="${sticker.url}" alt="${sticker.name}"><figcaption>${escapeHtml(sticker.caption || sticker.name)}</figcaption></figure>`
+          : `<img class="${className}" src="${sticker.url}" alt="${sticker.name}">`;
+        safe = safe.split(sticker.code).join(stickerHtml);
+      });
+      return safe.replace(/\n/g,"<br>");
+    }
+
+    function normalizeForModeration(value){
+      return String(value)
+        .toLowerCase()
+        .replace(/[\\s\\u200b\\u200c\\u200d\\ufe0f_\\-—=+*/\\\\|,.!?，。！？、:：;；"'“”‘’()[\\]{}<>《》【】~·`^#$%@]+/g,"")
+        .replace(/0/g,"o")
+        .replace(/1/g,"i")
+        .replace(/3/g,"e")
+        .replace(/4/g,"死")
+        .replace(/5/g,"我");
+    }
+
+    function findSensitiveWord(...values){
+      const original = values.join(" ");
+      const normalized = normalizeForModeration(original);
+      const wordHit = forumExpandedSensitiveWords.find(word => normalized.includes(normalizeForModeration(word)));
+      if (wordHit) return wordHit;
+      const patternHit = forumSensitivePatterns.find(item => item.pattern.test(original) || item.pattern.test(normalized));
+      return patternHit ? patternHit.label : "";
+    }
+
+    function normalizeForumPosts(value){
+      const list = Array.isArray(value) ? value : Array.isArray(value && value.posts) ? value.posts : [];
+      return list.map(post => {
+        const reportedBy = Array.isArray(post.reportedBy)
+          ? post.reportedBy
+          : Array.from({length:Number(post.reports) || 0}, (_, index) => `legacy-${post.id}-${index}`);
+        const legacyLikeCount = Number(post.likes) || 0;
+        const likedBy = Array.isArray(post.likedBy) && post.likedBy.length
+          ? post.likedBy
+          : Array.from({length:legacyLikeCount}, (_, index) => `legacy-like-${post.id}-${index}`);
+        const favoritedBy = Array.isArray(post.favoritedBy) ? post.favoritedBy : [];
+        return {
+          ...post,
+          category:post.category || "campus",
+          likedBy,
+          likes:likedBy.length,
+          favoritedBy,
+          favorites:favoritedBy.length,
+          ownerId:post.ownerId || "",
+          reportedBy,
+          reports:reportedBy.length,
+          replies:Array.isArray(post.replies)
+            ? post.replies.map((reply, index) => ({id:reply.id || `reply-${post.id}-${index}`, ...reply}))
+            : []
+        };
+      });
+    }
+
+    const forumApi = {
+      endpoint(name, id = ""){
+        return `${forumServerConfig.baseUrl}${forumServerConfig.endpoints[name].replace(":id", encodeURIComponent(id))}`;
+      },
+      async request(name, options = {}, id = ""){
+        if (!forumServerConfig.useServer) return null;
+        const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+        const {headers:customHeaders = {}, ...requestOptions} = options;
+        const response = await fetch(this.endpoint(name, id), {
+          ...requestOptions,
+          headers:isFormData ? customHeaders : {"Content-Type":"application/json", ...customHeaders}
+        });
+        if (!response.ok) throw new Error(`Forum API ${name} failed`);
+        if (response.status === 204) return null;
+        return response.json();
+      },
+      async listPosts(){
+        if (forumServerConfig.useServer) {
+          try {
+            const serverPosts = normalizeForumPosts(await this.request("list"));
+            return serverPosts.length ? serverPosts : normalizeForumPosts(defaultForumPosts);
+          } catch (error) {
+            console.error(error);
+          }
+        }
+        try {
+          const saved = JSON.parse(localStorage.getItem(forumStorageKey));
+          const localPosts = Array.isArray(saved) ? normalizeForumPosts(saved) : [];
+          return localPosts.length ? localPosts : normalizeForumPosts(defaultForumPosts);
+        } catch {
+          return normalizeForumPosts(defaultForumPosts);
+        }
+      },
+      async savePosts(posts){
+        const normalized = normalizeForumPosts(posts);
+        if (forumServerConfig.useServer) {
+          await this.request("list", {method:"PUT", body:JSON.stringify(normalized)});
+        } else {
+          localStorage.setItem(forumStorageKey, JSON.stringify(normalized));
+        }
+        return normalized;
+      },
+      async createPost(post, posts){
+        if (forumServerConfig.useServer) {
+          return normalizeForumPosts(await this.request("create", {method:"POST", body:JSON.stringify({...post, userId:getForumUserId()})}));
+        }
+        return this.savePosts([post, ...posts]);
+      },
+      async login(credentials){
+        if (forumServerConfig.useServer) {
+          return this.request("login", {method:"POST", body:JSON.stringify(credentials)});
+        }
+        const username = String(credentials.username || "").trim().toLowerCase().replace(/\s+/g, "_").slice(0, 24);
+        const displayName = String(credentials.displayName || credentials.username || "论坛用户").trim().slice(0, 24);
+        if (!username || String(credentials.password || "").length < 3) {
+          throw new Error("invalid_login");
+        }
+        return {user:{id:`user-${username}`, username, displayName}};
+      },
+      async likePost(postId, posts){
+        if (forumServerConfig.useServer) {
+          return normalizeForumPosts(await this.request("like", {method:"POST", body:JSON.stringify({userId:getForumUserId()})}, postId));
+        }
+        const userId = getForumUserId();
+        return this.savePosts(posts.map(post => {
+          if (post.id !== postId) return post;
+          const likedBy = post.likedBy.includes(userId)
+            ? post.likedBy.filter(id => id !== userId)
+            : [...post.likedBy, userId];
+          return {...post, likedBy, likes:likedBy.length};
+        }));
+      },
+      async favoritePost(postId, posts){
+        if (forumServerConfig.useServer) {
+          return normalizeForumPosts(await this.request("favorite", {method:"POST", body:JSON.stringify({userId:getForumUserId()})}, postId));
+        }
+        const userId = getForumUserId();
+        return this.savePosts(posts.map(post => {
+          if (post.id !== postId) return post;
+          const favoritedBy = post.favoritedBy.includes(userId)
+            ? post.favoritedBy.filter(id => id !== userId)
+            : [...post.favoritedBy, userId];
+          return {...post, favoritedBy, favorites:favoritedBy.length};
+        }));
+      },
+      async reportPost(postId, posts){
+        if (forumServerConfig.useServer) {
+          return normalizeForumPosts(await this.request("report", {method:"POST", body:JSON.stringify({userId:getForumUserId()})}, postId));
+        }
+        return this.savePosts(posts);
+      },
+      async addReply(postId, reply, posts){
+        if (forumServerConfig.useServer) {
+          return normalizeForumPosts(await this.request("reply", {method:"POST", body:JSON.stringify(reply)}, postId));
+        }
+        return this.savePosts(posts.map(post => post.id === postId ? {...post, replies:[...post.replies, reply]} : post));
+      },
+      async deleteReply(postId, replyId, posts){
+        if (forumServerConfig.useServer) {
+          const endpointPath = forumServerConfig.endpoints.deleteReply
+            .replace(":id", encodeURIComponent(postId))
+            .replace(":replyId", encodeURIComponent(replyId));
+          const response = await fetch(`${forumServerConfig.baseUrl}${endpointPath}`, {method:"DELETE"});
+          if (!response.ok) throw new Error("Forum API deleteReply failed");
+          return normalizeForumPosts(await response.json());
+        }
+        return this.savePosts(posts.map(post => post.id === postId ? {...post, replies:post.replies.filter(reply => reply.id !== replyId)} : post));
+      },
+      async deletePost(postId, posts){
+        if (forumServerConfig.useServer) {
+          return normalizeForumPosts(await this.request("delete", {method:"DELETE", body:JSON.stringify({userId:getForumUserId(), adminToken:"local-demo-admin-token"})}, postId));
+        }
+        return this.savePosts(posts.filter(post => post.id !== postId));
+      },
+      async deleteOwnPost(postId, posts){
+        if (forumServerConfig.useServer) {
+          return normalizeForumPosts(await this.request("delete", {method:"DELETE", body:JSON.stringify({userId:getForumUserId()})}, postId));
+        }
+        return this.savePosts(posts.filter(post => post.id !== postId));
+      },
+      async clearPostReports(postId, posts){
+        if (forumServerConfig.useServer) {
+          return normalizeForumPosts(await this.request("clearReports", {method:"DELETE"}, postId));
+        }
+        return this.savePosts(posts.map(post => post.id === postId ? {...post, reportedBy:[], reports:0} : post));
+      },
+      async clearAllReports(posts){
+        if (forumServerConfig.useServer) {
+          return normalizeForumPosts(await this.request("resetReports", {method:"DELETE"}));
+        }
+        return this.savePosts(posts.map(post => ({...post, reportedBy:[], reports:0})));
+      },
+      async restoreDemo(){
+        if (forumServerConfig.useServer) {
+          return normalizeForumPosts(await this.request("restoreDemo", {method:"POST", body:JSON.stringify(defaultForumPosts)}));
+        }
+        return this.savePosts(defaultForumPosts);
+      },
+      async uploadImage(file){
+        if (!forumServerConfig.useServer) throw new Error("Image upload API is reserved but not enabled");
+        const formData = new FormData();
+        formData.append("image", file);
+        return this.request("upload", {method:"POST", headers:{}, body:formData});
+      },
+      async adminLogin(credentials){
+        return this.request("adminLogin", {method:"POST", body:JSON.stringify(credentials)});
+      },
+      async listReports(){
+        return this.request("reports");
+      },
+      async updateSensitiveWords(words){
+        return this.request("sensitiveWords", {method:"PUT", body:JSON.stringify({words})});
+      }
+    };
+
+    function nowLabel(){
+      const date = new Date();
+      const pad = value => String(value).padStart(2,"0");
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+
+    function createForumId(prefix){
+      return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+    }
+
+    async function initForum(){
+      if (pageKey !== "forum") return;
+      const form = document.getElementById("forum-form");
+      const feed = document.getElementById("forum-feed");
+      const status = document.getElementById("forum-status");
+      const stickerPicker = document.getElementById("sticker-picker");
+      const stickerSearch = document.getElementById("sticker-search");
+      const stickerPresets = document.getElementById("sticker-presets");
+      const stickerWebSearch = document.getElementById("sticker-web-search");
+      const stickerToggle = document.getElementById("sticker-toggle");
+      const stickerPanel = document.getElementById("sticker-panel");
+      const uploadButton = document.getElementById("forum-upload");
+      const resetButton = document.getElementById("forum-reset-demo");
+      const loginCard = document.getElementById("forum-login-card");
+      const loginForm = document.getElementById("forum-login-form");
+      const loginUsername = document.getElementById("forum-login-username");
+      const loginDisplay = document.getElementById("forum-login-display");
+      const loginPassword = document.getElementById("forum-login-password");
+      const userbar = document.getElementById("forum-userbar");
+      const categoryTabs = document.getElementById("forum-category-tabs");
+      const categoryInput = document.getElementById("forum-category");
+      const titleInput = document.getElementById("forum-title");
+      const contentInput = document.getElementById("forum-content");
+      let forumSession = getForumSession();
+      let forumUserId = getForumUserId();
+      let activeCategory = localStorage.getItem(forumCategoryKey) || "all";
+      let focusedTextarea = contentInput;
+      let posts = await forumApi.listPosts();
+      const setStatus = message => {
+        status.textContent = message;
+        clearTimeout(initForum.statusTimer);
+        initForum.statusTimer = setTimeout(()=>{ status.textContent = ""; }, 2600);
+      };
+
+      const categoryLabel = id => (forumCategories.find(category => category.id === id) || forumCategories[0]).label;
+
+      function renderLogin(){
+        const loggedIn = Boolean(forumSession && forumSession.id);
+        loginCard.style.display = loggedIn ? "none" : "grid";
+        userbar.innerHTML = loggedIn
+          ? `<div>已登录：${escapeHtml(forumSession.displayName || forumSession.username)}<span>@${escapeHtml(forumSession.username || forumSession.id)}</span></div><button class="forum-btn light" type="button" id="forum-logout">退出登录</button>`
+          : `<div>游客浏览模式<span>登录后可发帖、回复、点赞、收藏和投诉</span></div>`;
+        form.classList.toggle("is-disabled", !loggedIn);
+        form.querySelectorAll("input,select,textarea,button").forEach(element => {
+          if (element.id === "forum-reset-demo" || element.closest(".sticker-panel")) return;
+          element.disabled = !loggedIn;
+        });
+        stickerToggle.disabled = !loggedIn;
+      }
+
+      function renderCategoryTabs(){
+        categoryTabs.innerHTML = forumCategories.map(category => {
+          const count = category.id === "favorites"
+            ? posts.filter(post => post.favoritedBy.includes(forumUserId)).length
+            : category.id === "all"
+              ? posts.length
+              : posts.filter(post => post.category === category.id).length;
+          return `<button type="button" class="${activeCategory === category.id ? "active" : ""}" data-category="${category.id}">${category.label} ${count}</button>`;
+        }).join("");
+      }
+
+      function renderStickers(query = ""){
+        const keyword = query.trim().toLowerCase();
+        const filtered = forumStickers.filter(sticker => {
+          const text = `${sticker.name} ${sticker.code} ${sticker.tags || ""}`.toLowerCase();
+          return !keyword || text.includes(keyword);
+        });
+        stickerPicker.innerHTML = filtered.length
+          ? filtered.map(sticker =>
+            `<button class="sticker-btn ${sticker.kind}" type="button" data-code="${sticker.code}" title="${sticker.name}" aria-label="插入${sticker.name}"><img src="${sticker.url}" alt="${sticker.name}">${sticker.kind === "photo" ? `<span>${escapeHtml(sticker.caption || sticker.name)}</span>` : ""}</button>`
+          ).join("")
+          : `<div class="sticker-empty">没有找到这个表情包，换个关键词试试。</div>`;
+        const searchKeyword = query.trim() || "最新表情包 梗图";
+        if (stickerWebSearch) {
+          stickerWebSearch.innerHTML = [
+            ["发表情", `https://www.fabiaoqing.com/search/search/keyword/${encodeURIComponent(searchKeyword)}`],
+            ["斗图搜索", `https://www.doutub.com/search/${encodeURIComponent(searchKeyword)}`],
+            ["梗图搜索", `https://gengtu.net/search?q=${encodeURIComponent(searchKeyword)}`],
+            ["必应图片", `https://www.bing.com/images/search?q=${encodeURIComponent(searchKeyword + " 表情包 梗图")}`]
+          ].map(([label, url]) => `<a href="${url}" target="_blank" rel="noopener">${label}</a>`).join("");
+        }
+      }
+
+      renderStickers();
+      renderLogin();
+      renderCategoryTabs();
+
+      loginForm.addEventListener("submit", async event => {
+        event.preventDefault();
+        try {
+          const username = loginUsername.value.trim();
+          const displayName = loginDisplay.value.trim() || username;
+          const password = loginPassword.value;
+          const result = await forumApi.login({username, displayName, password});
+          forumSession = saveForumSession(result.user);
+          forumUserId = forumSession.id;
+          loginForm.reset();
+          renderLogin();
+          renderPosts();
+          setStatus("登录成功。");
+        } catch (error) {
+          console.error(error);
+          setStatus("登录失败：用户名不能为空，密码至少 3 位；已有账号请确认密码。");
+        }
+      });
+
+      userbar.addEventListener("click", event => {
+        if (!event.target.closest("#forum-logout")) return;
+        localStorage.removeItem(forumSessionKey);
+        localStorage.removeItem(forumUserKey);
+        forumSession = null;
+        forumUserId = getForumUserId();
+        renderLogin();
+        renderPosts();
+        setStatus("已退出登录。");
+      });
+
+      categoryTabs.addEventListener("click", event => {
+        const button = event.target.closest("button[data-category]");
+        if (!button) return;
+        activeCategory = button.dataset.category;
+        localStorage.setItem(forumCategoryKey, activeCategory);
+        renderPosts();
+      });
+
+      const setStickerPanelOpen = isOpen => {
+        stickerPanel.classList.toggle("open", isOpen);
+        stickerToggle.setAttribute("aria-expanded", String(isOpen));
+        stickerToggle.textContent = isOpen ? "收起表情包" : "选择表情包";
+      };
+      setStickerPanelOpen(false);
+      stickerToggle.addEventListener("click", () => {
+        setStickerPanelOpen(!stickerPanel.classList.contains("open"));
+      });
+      stickerSearch.addEventListener("input", () => renderStickers(stickerSearch.value));
+      stickerPresets.addEventListener("click", event => {
+        const button = event.target.closest(".sticker-chip");
+        if (!button) return;
+        stickerSearch.value = button.dataset.query;
+        renderStickers(stickerSearch.value);
+      });
+
+      document.addEventListener("focusin", event => {
+        if (event.target.matches("#forum-content,.reply-box textarea")) {
+          focusedTextarea = event.target;
+        }
+      });
+
+      stickerPicker.addEventListener("click", event => {
+        const button = event.target.closest(".sticker-btn");
+        if (!button) return;
+        const textarea = focusedTextarea || contentInput;
+        const code = button.dataset.code;
+        const start = textarea.selectionStart || textarea.value.length;
+        const end = textarea.selectionEnd || textarea.value.length;
+        textarea.value = `${textarea.value.slice(0,start)}${code}${textarea.value.slice(end)}`;
+        textarea.focus();
+        textarea.selectionStart = textarea.selectionEnd = start + code.length;
+        setStickerPanelOpen(false);
+      });
+
+      function renderPosts(){
+        renderCategoryTabs();
+        const visiblePosts = posts.filter(post => {
+          if (activeCategory === "favorites") return post.favoritedBy.includes(forumUserId);
+          if (activeCategory === "all") return true;
+          return post.category === activeCategory;
+        });
+        if (!visiblePosts.length) {
+          feed.innerHTML = `<div class="empty-forum">${activeCategory === "favorites" ? "收藏夹目前为空。可以在帖子下方点击收藏。" : "当前分区还没有帖子。欢迎发布第一条校园话题。"}</div>`;
+          return;
+        }
+        feed.innerHTML = visiblePosts.map(post => `
+          <article class="student-post" data-id="${post.id}">
+            <header>
+              <div>
+                <h3>${escapeHtml(post.title)}</h3>
+                <div class="post-meta"><span class="post-category">${escapeHtml(categoryLabel(post.category))}</span>发布者：${escapeHtml(post.author)} · ${escapeHtml(post.createdAt)} · 收藏 ${post.favoritedBy.length} · 投诉 ${post.reportedBy.length}/6</div>
+              </div>
+            </header>
+            <div class="post-body">${renderForumText(post.content)}</div>
+            <div class="post-actions">
+              <button class="forum-btn light ${post.likedBy.includes(forumUserId) ? "is-active" : ""}" type="button" data-action="like">${post.likedBy.includes(forumUserId) ? "取消点赞" : "点赞"} ${post.likes}</button>
+              <button class="forum-btn light ${post.favoritedBy.includes(forumUserId) ? "is-active" : ""}" type="button" data-action="favorite">${post.favoritedBy.includes(forumUserId) ? "取消收藏" : "收藏"} ${post.favoritedBy.length}</button>
+              <button class="forum-btn light" type="button" data-action="report" ${post.reportedBy.includes(forumUserId) ? "disabled" : ""}>${post.reportedBy.includes(forumUserId) ? "已投诉" : "投诉"}</button>
+              ${post.ownerId === forumUserId ? `<button class="forum-btn secondary" type="button" data-action="delete-own">删除我的帖子</button>` : ""}
+            </div>
+            <div class="reply-list">
+              ${post.replies.map(reply => `<div class="reply"><strong>${escapeHtml(reply.author)}</strong> · <small>${escapeHtml(reply.createdAt)}</small><br>${renderForumText(reply.content)}</div>`).join("")}
+            </div>
+            <form class="reply-box" data-action="reply">
+              <label>回复内容</label>
+              <textarea maxlength="500" placeholder="写下回复，也可以点上面的表情包插入。"></textarea>
+              <div class="forum-toolbar">
+                <button class="forum-btn" type="submit">发布回复</button>
+                <button class="forum-btn secondary" type="button" data-action="upload">上传图片</button>
+              </div>
+            </form>
+          </article>
+        `).join("");
+      }
+
+      form.addEventListener("submit", async event => {
+        event.preventDefault();
+        if (!forumSession) {
+          setStatus("请先登录再发布帖子。");
+          return;
+        }
+        const author = forumSession.displayName || forumSession.username || "论坛用户";
+        const title = titleInput.value.trim();
+        const content = contentInput.value.trim();
+        const category = categoryInput.value || "campus";
+        if (!title || !content) {
+          setStatus("标题和正文都要填写。");
+          return;
+        }
+        const blockedWord = findSensitiveWord(author, title, content);
+        if (blockedWord) {
+          setStatus(`发布失败：内容包含不适合发布的词语“${blockedWord}”。`);
+          return;
+        }
+        try {
+          posts = await forumApi.createPost({
+            id:createForumId("post"),
+            author,
+            title,
+            content,
+            category,
+            ownerId:forumUserId,
+            likes:0,
+            likedBy:[],
+            reportedBy:[],
+            reports:0,
+            createdAt:nowLabel(),
+            replies:[]
+          }, posts);
+          form.reset();
+          stickerSearch.value = "";
+          renderStickers();
+          setStickerPanelOpen(false);
+          focusedTextarea = contentInput;
+          renderPosts();
+          setStatus("帖子已发布，已显示在帖子列表最上方。");
+        } catch (error) {
+          console.error(error);
+          setStatus("发布失败：本地保存或服务器接口出错，请稍后再试。");
+        }
+      });
+
+      feed.addEventListener("click", async event => {
+        const postEl = event.target.closest(".student-post");
+        const action = event.target.dataset.action;
+        if (!postEl || !action) return;
+        const post = posts.find(item => item.id === postEl.dataset.id);
+        if (!post) return;
+        if (!forumSession && ["like","favorite","report","delete-own","upload"].includes(action)) {
+          setStatus("请先登录再操作。");
+          return;
+        }
+        if (action === "like") {
+          const wasLiked = post.likedBy.includes(forumUserId);
+          posts = await forumApi.likePost(post.id, posts);
+          renderPosts();
+          setStatus(wasLiked ? "已取消点赞。" : "已点赞。");
+        }
+        if (action === "favorite") {
+          const wasFavorited = post.favoritedBy.includes(forumUserId);
+          posts = await forumApi.favoritePost(post.id, posts);
+          renderPosts();
+          setStatus(wasFavorited ? "已取消收藏。" : "已收藏，可在“我的收藏”查看。");
+        }
+        if (action === "report") {
+          if (post.reportedBy.includes(forumUserId)) {
+            setStatus("你已经投诉过这条帖子，不能重复投诉。");
+            return;
+          }
+          post.reportedBy.push(forumUserId);
+          post.reports = post.reportedBy.length;
+          if (post.reportedBy.length > 5) {
+            posts = await forumApi.deletePost(post.id, posts);
+            setStatus("该帖子被超过 5 个不同用户投诉，已自动删除。");
+          } else {
+            posts = await forumApi.reportPost(post.id, posts);
+            setStatus(`已投诉。当前 ${post.reportedBy.length}/6，超过 5 个不同用户会自动删除。`);
+          }
+          renderPosts();
+        }
+        if (action === "delete-own") {
+          if (post.ownerId !== forumUserId) {
+            setStatus("只能删除自己在当前浏览器发布的帖子。");
+            return;
+          }
+          posts = await forumApi.deleteOwnPost(post.id, posts);
+          renderPosts();
+          setStatus("帖子已删除。");
+        }
+        if (action === "upload") {
+          setStatus("图片服务暂时不可用，请稍后再试。");
+        }
+      });
+
+      feed.addEventListener("submit", async event => {
+        const replyForm = event.target.closest(".reply-box");
+        if (!replyForm) return;
+        event.preventDefault();
+        if (!forumSession) {
+          setStatus("请先登录再回复。");
+          return;
+        }
+        const postEl = event.target.closest(".student-post");
+        const post = posts.find(item => item.id === postEl.dataset.id);
+        const author = forumSession.displayName || forumSession.username || "论坛用户";
+        const content = replyForm.querySelector("textarea").value.trim();
+        if (!content) {
+          setStatus("回复内容不能为空。");
+          return;
+        }
+        const blockedWord = findSensitiveWord(author, content);
+        if (blockedWord) {
+          setStatus(`回复失败：内容包含不适合发布的词语“${blockedWord}”。`);
+          return;
+        }
+        try {
+          posts = await forumApi.addReply(post.id, {id:createForumId("reply"), author, content, createdAt:nowLabel()}, posts);
+          renderPosts();
+          setStatus("回复已发布。");
+        } catch (error) {
+          console.error(error);
+          setStatus("回复失败：本地保存或服务器接口出错，请稍后再试。");
+        }
+      });
+
+      uploadButton.addEventListener("click", () => setStatus("图片服务暂时不可用，请稍后再试。"));
+      resetButton.addEventListener("click", async () => {
+        posts = await forumApi.restoreDemo();
+        stickerSearch.value = "";
+        renderStickers();
+        setStickerPanelOpen(false);
+        renderPosts();
+        setStatus("已恢复示例帖子。");
+      });
+
+      renderPosts();
+    }
+
+    initForum();
+
+    async function initAdmin(){
+      if (pageKey !== "admin") return;
+      const stats = document.getElementById("admin-stats");
+      const list = document.getElementById("admin-list");
+      const status = document.getElementById("admin-status");
+      const exportButton = document.getElementById("admin-export");
+      const resetReportsButton = document.getElementById("admin-reset-reports");
+      const restoreButton = document.getElementById("admin-restore-demo");
+      const setStatus = message => {
+        status.textContent = message;
+        clearTimeout(initAdmin.statusTimer);
+        initAdmin.statusTimer = setTimeout(()=>{ status.textContent = ""; }, 2600);
+      };
+      let posts = await forumApi.listPosts();
+
+      function renderAdmin(){
+        const replyCount = posts.reduce((sum, post) => sum + post.replies.length, 0);
+        const reportCount = posts.reduce((sum, post) => sum + post.reportedBy.length, 0);
+        stats.innerHTML = `
+          <div class="admin-card"><strong>${posts.length}</strong><span>帖子总数</span></div>
+          <div class="admin-card"><strong>${replyCount}</strong><span>回复总数</span></div>
+          <div class="admin-card"><strong>${reportCount}</strong><span>投诉总数</span></div>
+        `;
+        if (!posts.length) {
+          list.innerHTML = `<div class="empty-forum">后台暂无帖子数据。</div>`;
+          return;
+        }
+        list.innerHTML = posts.map(post => `
+          <article class="admin-item" data-id="${post.id}">
+            <h3>${escapeHtml(post.title)}</h3>
+            <p>作者：${escapeHtml(post.author)} · ${escapeHtml(post.createdAt)} · 点赞 ${post.likes} · 投诉 ${post.reportedBy.length}/6 · 回复 ${post.replies.length}</p>
+            <p>${renderForumText(post.content)}</p>
+            <div class="forum-toolbar">
+              <button class="forum-btn light" type="button" data-action="clear-report">清空本帖投诉</button>
+              <button class="forum-btn secondary" type="button" data-action="delete">删除帖子</button>
+            </div>
+          </article>
+        `).join("");
+      }
+
+      list.addEventListener("click", async event => {
+        const item = event.target.closest(".admin-item");
+        const action = event.target.dataset.action;
+        if (!item || !action) return;
+        const post = posts.find(value => value.id === item.dataset.id);
+        if (!post) return;
+        if (action === "clear-report") {
+          posts = await forumApi.clearPostReports(post.id, posts);
+          renderAdmin();
+          setStatus("已清空这条帖子的投诉记录。");
+        }
+        if (action === "delete") {
+          posts = await forumApi.deletePost(post.id, posts);
+          renderAdmin();
+          setStatus("帖子已删除。");
+        }
+      });
+
+      exportButton.addEventListener("click", () => {
+        const blob = new Blob([JSON.stringify(posts, null, 2)], {type:"application/json"});
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `bjzx-forum-${Date.now()}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+        setStatus("帖子数据已导出。");
+      });
+
+      resetReportsButton.addEventListener("click", async () => {
+        posts = await forumApi.clearAllReports(posts);
+        renderAdmin();
+        setStatus("所有投诉记录已清空。");
+      });
+
+      restoreButton.addEventListener("click", async () => {
+        posts = await forumApi.restoreDemo();
+        renderAdmin();
+        setStatus("已恢复示例帖子。");
+      });
+
+      renderAdmin();
+    }
+
+    initAdmin();
+  </script>
+</body>
+</html>

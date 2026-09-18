@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>最新动态 | 北中观察站</title>
+  <link rel="icon" href="bjzx-favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="bjzx-favicon.png">
   <style>
     :root{
       --red:#b50018;
@@ -359,9 +361,9 @@
       </a>
       <nav class="nav" aria-label="主导航">
         <a href="index.html">首页</a>
-        <a href="index.html#about">学校概况</a>
+        <a href="portal.html?page=about">学校概况</a>
         <a class="active" href="index.html#news">最新动态</a>
-        <a href="index.html#campus">校园文化</a>
+        <a href="portal.html?page=student-life">校园文化</a>
       </nav>
     </div>
   </header>
@@ -410,47 +412,71 @@
   </footer>
 
   <script>
+    (() => {
+      const block = event => {
+        event.preventDefault();
+        event.stopPropagation();
+      };
+      document.addEventListener("contextmenu", block, true);
+      document.addEventListener("dragstart", block, true);
+      document.addEventListener("selectstart", block, true);
+      document.addEventListener("keydown", event => {
+        const key = event.key.toLowerCase();
+        const isDevToolsKey = event.key === "F12"
+          || (event.ctrlKey && event.shiftKey && ["i","j","c"].includes(key))
+          || (event.metaKey && event.altKey && ["i","j","c"].includes(key))
+          || ((event.ctrlKey || event.metaKey) && ["u","s"].includes(key));
+        if (isDevToolsKey) block(event);
+      }, true);
+    })();
+
     const articles = {
       "1":{
-        title:"北京中学科技分校 2026 年“1+3”培养实验录取公告",
+        title:"北京中学科技分校2026年“1+3”录取公告",
         date:"2026.07",
         category:"Admissions / 公告",
         image:"bjzx-news-1.jpg",
+        sourceUrl:"https://www.beijingacademy.com.cn/cms/bjzx/zxdt1/3904.jhtml",
         body:`
-          <p>北京中学科技分校持续推进面向未来的贯通培养实验，围绕科学素养、创新表达、综合实践与学生发展支持，构建更具连续性的成长路径。</p>
-          <p>本年度项目坚持公开、公平、公正原则，结合学生综合表现与项目培养方向，完成相关录取工作。后续安排请以学校正式发布的信息为准。</p>
-          <h2>培养方向</h2>
-          <p>项目关注学生在真实问题中的学习能力，通过科学探究、跨学科项目、阅读表达和社会实践，帮助学生形成稳定的学习方法与开阔的公共视野。</p>
-          <blockquote>以学生成长为中心，让每一次学习都面向真实世界。</blockquote>
-          <p>学校将继续完善课程衔接、学习支持和校园资源配置，为学生提供高质量、现代化的学习环境。</p>
+          <p>北京中学官网“最新动态”栏目收录了《北京中学科技分校2026年“1+3”录取公告》，列表日期为 07-27。</p>
+          <p>官网文章页显示标题为《北京中学科技分校2026年“1+3”录取公告》，来源为“本网”，发布时间为 2026-07-27 18:00。</p>
+          <h2>原文附件</h2>
+          <p>官网文章正文提供了同名 PDF 附件《北京中学科技分校2026年“1+3”录取公告.pdf》。涉及录取名单、报到安排、材料要求等具体信息时，应打开官网原文或附件核对。</p>
+          <blockquote>本页只做来源明确的站内转引，不改写录取结果，不新增未经核验的招生细节。</blockquote>
+          <h2>核验说明</h2>
+          <p>本条内容的可核验事实包括标题、栏目、来源、发布时间和 PDF 附件名称，均来自北京中学官网页面。北中观察站不替代学校正式发布渠道。</p>
         `
       },
       "2":{
-        title:"北京中学国际部 2026 届毕业典礼圆满礼成",
+        title:"北京中学国际部2026届毕业典礼暨成人礼圆满礼成",
         date:"2026.06",
         category:"Campus Life / 校园生活",
         image:"bjzx-news-2.jpg",
+        sourceUrl:"https://mp.weixin.qq.com/s/QdsxXU8GogkBL4tUs_bSEQ",
         body:`
-          <p>北京中学国际部 2026 届毕业典礼举行。师生共同回望成长历程，见证毕业生从校园走向更广阔的学习与生活舞台。</p>
-          <p>典礼现场，毕业生代表分享了在北京中学的学习体验：课堂中的探究、社团中的协作、项目中的表达，都成为他们理解世界和认识自我的重要部分。</p>
-          <h2>面向世界的成长</h2>
-          <p>学校坚持中国根基与国际视野并重，鼓励学生在跨文化交流中建立责任感、同理心和独立判断力。</p>
-          <blockquote>愿每一位毕业生带着“世界因我更美好”的信念继续出发。</blockquote>
-          <p>未来，学校将继续以开放、多元、扎实的教育实践，支持学生在真实世界中成长。</p>
+          <p>北京中学官网“最新动态”列表收录了《北京中学国际部2026届毕业典礼暨成人礼圆满礼成》，列表日期为 06-11，并链接到微信文章。</p>
+          <p>因此，本页只保留能从官网列表核验的标题、发布时间月份和来源入口，不再编写典礼现场细节、发言内容或活动流程。</p>
+          <h2>原文入口</h2>
+          <p>完整内容应以官网列表跳转的微信原文为准。北中观察站在这里提供站内阅读入口和来源说明，方便从首页新闻卡片继续跳转。</p>
+          <blockquote>未在可核验网页中确认的发言、人物、流程和现场描述，不写入本文。</blockquote>
+          <h2>核验说明</h2>
+          <p>本条内容的可核验事实包括标题、官网列表日期和微信原文链接，均来自北京中学官网“最新动态”列表。</p>
         `
       },
       "3":{
-        title:"北京中学开展主题教育与校园实践活动",
+        title:"北京市“国家级义务教育教学改革实验区、实验校”展示交流活动在北京中学成功举办",
         date:"2026.06",
         category:"Research / 教学研究",
         image:"bjzx-news-3.jpg",
+        sourceUrl:"https://mp.weixin.qq.com/s/zwoTWT9kN4UhOgh_JWpfNA",
         body:`
-          <p>北京中学组织开展主题教育与校园实践活动，鼓励学生在校园空间中观察、记录、讨论与表达，形成面向真实生活的学习成果。</p>
-          <p>活动围绕校园文化、公共责任、科学观察和协作表达展开，鼓励学生从日常经验出发，提出问题、收集材料、完成展示。</p>
-          <h2>在真实任务中学习</h2>
-          <p>学校通过项目化学习和跨学科协作，帮助学生把课堂知识连接到真实情境，让学习从“知道”走向“做到”。</p>
-          <blockquote>校园不是背景，而是学生理解世界的第一现场。</blockquote>
-          <p>后续，北中观察站将继续记录校园里的微小发现与持续成长。</p>
+          <p>北京中学官网“最新动态”列表收录了《北京市“国家级义务教育教学改革实验区、实验校”展示交流活动在北京中学成功举办》，列表日期为 06-05，并链接到微信文章。</p>
+          <p>本条替换了此前无法核验的“主题教育与校园实践活动”表述，改为官网列表中可以查到的真实标题。</p>
+          <h2>原文入口</h2>
+          <p>完整活动内容应以官网列表跳转的微信原文为准。北中观察站只做站内摘要入口，不添加未经来源确认的现场流程或活动细节。</p>
+          <blockquote>本文标题、日期和来源入口来自北京中学官网“最新动态”列表。</blockquote>
+          <h2>核验说明</h2>
+          <p>本条内容的可核验事实包括标题、官网列表日期和微信原文链接。没有来源支持的活动细节已经移除。</p>
         `
       }
     };
@@ -465,7 +491,7 @@
     document.getElementById("article-title").textContent = article.title;
     document.getElementById("article-date").textContent = article.date;
     document.getElementById("article-image").src = article.image;
-    document.getElementById("article-content").innerHTML = article.body;
+    document.getElementById("article-content").innerHTML = article.body + `<h2>资料来源</h2><p><a href="${article.sourceUrl}" target="_blank" rel="noopener">打开原始来源</a></p>`;
 
     const related = document.getElementById("related-news");
     Object.entries(articles).forEach(([key,item])=>{

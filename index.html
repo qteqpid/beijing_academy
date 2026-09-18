@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>北中观察站 | 学生自主研发网站</title>
+  <link rel="icon" href="bjzx-favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="bjzx-favicon.png">
   <style>
     :root{
       --red:#b50018;
@@ -667,7 +669,7 @@
       position:relative;
       z-index:5;
       display:grid;
-      grid-template-columns:repeat(4,1fr);
+      grid-template-columns:repeat(5,1fr);
       background:#fff;
       box-shadow:var(--shadow-strong);
       border:1px solid rgba(231,231,231,.8);
@@ -773,6 +775,13 @@
       display:grid;
       grid-template-columns:1.4fr 1fr 1fr;
       gap:26px;
+    }
+    .official-sync-status{
+      margin:-18px 0 20px;
+      color:#7a1a22;
+      font-weight:900;
+      font-size:14px;
+      min-height:20px;
     }
     .news-card{
       background:#fff;
@@ -1075,6 +1084,9 @@
       font-size:14px;
       transition:color .22s ease,transform .22s ease;
     }
+    .footer li a{
+      display:inline-block;
+    }
     .footer li:hover{
       color:#fff;
       transform:translateX(4px);
@@ -1149,14 +1161,14 @@
 
   <nav class="school-nav" aria-label="主导航">
     <div class="school-nav-inner">
-      <a class="school-logo" href="#">
+      <a class="school-logo" href="index.html">
         <img src="bjzx-logo.jpg" alt="北京中学 Beijing Academy">
       </a>
       <div class="school-tabs">
-        <a class="active" href="#">首页</a>
-        <a href="#about">学校概况</a>
-        <a href="#academics">教学科研</a>
-        <a href="#campus">校园文化</a>
+        <a class="active" href="index.html">首页</a>
+        <a href="portal.html?page=about">学校概况</a>
+        <a href="portal.html?page=academics">教学科研</a>
+        <a href="portal.html?page=student-life">校园文化</a>
       </div>
     </div>
   </nav>
@@ -1179,7 +1191,7 @@
         </div>
       </div>
       <div class="school-hero-controls" aria-label="首屏轮播控制">
-        <a class="school-read-more" href="#about">Read More</a>
+        <a class="school-read-more" href="portal.html?page=about">Read More</a>
         <button class="school-pause" type="button" aria-label="暂停轮播">Ⅱ</button>
         <div class="school-progress" aria-label="选择首屏图片">
           <button class="active" type="button" aria-label="第 1 张"></button>
@@ -1190,10 +1202,11 @@
     </section>
 
     <div class="quick-links reveal">
-      <a class="quick-link" href="#admissions"><span>ADMISSIONS</span><strong>招生信息</strong></a>
-      <a class="quick-link" href="#academics"><span>ACADEMICS</span><strong>课程教学</strong></a>
-      <a class="quick-link" href="#research"><span>RESEARCH</span><strong>教学研究</strong></a>
-      <a class="quick-link" href="#campus"><span>CAMPUS LIFE</span><strong>学生天地</strong></a>
+      <a class="quick-link" href="portal.html?page=admissions"><span>ADMISSIONS</span><strong>招生信息</strong></a>
+      <a class="quick-link" href="portal.html?page=curriculum"><span>ACADEMICS</span><strong>课程教学</strong></a>
+      <a class="quick-link" href="portal.html?page=research"><span>RESEARCH</span><strong>教学研究</strong></a>
+      <a class="quick-link" href="portal.html?page=student-life"><span>CAMPUS LIFE</span><strong>学生天地</strong></a>
+      <a class="quick-link" href="portal.html?page=forum"><span>FORUM</span><strong>学生论坛</strong></a>
     </div>
 
     <section id="news" class="reveal">
@@ -1202,31 +1215,32 @@
           <em>News</em>
           <h2>最新动态</h2>
         </div>
-        <a class="more" href="#">更多新闻</a>
+        <a class="more" href="portal.html?page=news">更多新闻</a>
       </div>
-      <div class="news-grid">
+      <p class="official-sync-status" id="home-official-news-status" aria-live="polite"></p>
+      <div class="news-grid" id="home-official-news-list">
         <a class="news-card large" href="news-detail.html?id=1">
           <div class="news-img"></div>
           <div class="news-body">
             <time>2026.07</time>
-            <h3>北京中学科技分校 2026 年“1+3”培养实验录取公告</h3>
-            <p>面向未来学习方式，持续推进贯通培养、科学教育与学生发展支持。</p>
+            <h3>北京中学科技分校2026年“1+3”录取公告</h3>
+            <p>来源为北京中学官网“最新动态”栏目，详情页提供官网原文链接。</p>
           </div>
         </a>
         <a class="news-card" href="news-detail.html?id=2">
           <div class="news-img"></div>
           <div class="news-body">
             <time>2026.06</time>
-            <h3>北京中学国际部 2026 届毕业典礼圆满礼成</h3>
-            <p>以国际视野和中国根基，见证学生迈向更广阔的世界课堂。</p>
+            <h3>北京中学国际部2026届毕业典礼暨成人礼圆满礼成</h3>
+            <p>来源为北京中学官网“最新动态”栏目收录的官方微信文章入口。</p>
           </div>
         </a>
         <a class="news-card" href="news-detail.html?id=3">
           <div class="news-img"></div>
           <div class="news-body">
             <time>2026.06</time>
-            <h3>北京中学开展主题教育与校园实践活动</h3>
-            <p>在真实任务中学习，在校园共同体中成长。</p>
+            <h3>北京市“国家级义务教育教学改革实验区、实验校”展示交流活动在北京中学成功举办</h3>
+            <p>来源为北京中学官网“最新动态”栏目收录的官方微信文章入口。</p>
           </div>
         </a>
       </div>
@@ -1254,37 +1268,37 @@
           <em>Academics</em>
           <h2>课程教学</h2>
         </div>
-        <a class="more" href="#">课程体系</a>
+        <a class="more" href="portal.html?page=curriculum">课程体系</a>
       </div>
       <div class="events">
-        <article class="event">
+        <a class="event" href="portal.html?page=curriculum">
           <div class="event-date">01<span>CURRICULUM</span></div>
           <div>
             <h3>以学生成长为中心的课程结构</h3>
             <p>通过基础课程、拓展课程、项目学习和社会实践，支持不同兴趣与能力的学生持续发展。</p>
           </div>
-        </article>
-        <article class="event">
+        </a>
+        <a class="event" href="portal.html?page=international">
           <div class="event-date">02<span>GLOBAL</span></div>
           <div>
             <h3>国际理解与世界课堂</h3>
             <p>在中外交流、跨文化学习和真实议题探究中培养学生的开放视野。</p>
           </div>
-        </article>
-        <article class="event">
+        </a>
+        <a class="event" href="portal.html?page=research">
           <div class="event-date">03<span>SCIENCE</span></div>
           <div>
             <h3>数智赋能与科学教育</h3>
             <p>以实验、工程、数据与表达能力为核心，建设面向未来的学习环境。</p>
           </div>
-        </article>
-        <article class="event">
+        </a>
+        <a class="event" href="portal.html?page=student-life">
           <div class="event-date">04<span>GROWTH</span></div>
           <div>
             <h3>身心健康与综合素养</h3>
             <p>重视体育、艺术、阅读、劳动与社会责任，让成长更完整。</p>
           </div>
-        </article>
+        </a>
       </div>
     </section>
 
@@ -1294,12 +1308,12 @@
           <em>Virtual Campus Tour</em>
           <h2>校园导览</h2>
         </div>
-        <a class="more" href="#">查看地图</a>
+        <a class="more" href="portal.html?page=campus-map">查看地图</a>
       </div>
       <div class="tour-grid">
-        <article class="tour-card"><div><em>CAMPUS</em><h3>西坝河校区</h3></div></article>
-        <article class="tour-card"><div><em>LEARNING</em><h3>现代学习空间</h3></div></article>
-        <article class="tour-card"><div><em>COMMUNITY</em><h3>学生成长社区</h3></div></article>
+        <a class="tour-card" href="portal.html?page=campus-tour"><div><em>CAMPUS</em><h3>西坝河校区</h3></div></a>
+        <a class="tour-card" href="portal.html?page=campus-gallery"><div><em>LEARNING</em><h3>现代学习空间</h3></div></a>
+        <a class="tour-card" href="portal.html?page=student-life"><div><em>COMMUNITY</em><h3>学生成长社区</h3></div></a>
       </div>
     </section>
 
@@ -1309,23 +1323,23 @@
           <em>Admissions</em>
           <h2>招生与联系</h2>
         </div>
-        <a class="more" href="#">联系我们</a>
+        <a class="more" href="portal.html?page=contact">联系我们</a>
       </div>
       <div class="events">
-        <article class="event">
+        <a class="event" href="portal.html?page=admissions">
           <div class="event-date">招<span>INFO</span></div>
           <div>
             <h3>招生信息</h3>
             <p>关注学校最新招生安排、校园开放活动和项目说明。</p>
           </div>
-        </article>
-        <article class="event">
+        </a>
+        <a class="event" href="portal.html?page=contact">
           <div class="event-date">联<span>CONTACT</span></div>
           <div>
             <h3>北京市朝阳区西坝河东里 1 号</h3>
             <p>联系电话：010-50981098（西坝河校区） / 010-50951290（东坝南校区）</p>
           </div>
-        </article>
+        </a>
       </div>
     </section>
   </main>
@@ -1335,19 +1349,19 @@
       <div class="footer-nav">
         <div>
           <h4>学校概况</h4>
-          <ul><li>学校简介</li><li>办学理念</li><li>校园导览</li></ul>
+          <ul><li><a href="portal.html?page=intro">学校简介</a></li><li><a href="portal.html?page=philosophy">办学理念</a></li><li><a href="portal.html?page=campus-tour">校园导览</a></li></ul>
         </div>
         <div>
           <h4>课程教学</h4>
-          <ul><li>课程体系</li><li>项目学习</li><li>教学研究</li></ul>
+          <ul><li><a href="portal.html?page=curriculum">课程体系</a></li><li><a href="portal.html?page=project-learning">项目学习</a></li><li><a href="portal.html?page=research">教学研究</a></li></ul>
         </div>
         <div>
           <h4>校园生活</h4>
-          <ul><li>学生天地</li><li>家校联盟</li><li>国际教育</li></ul>
+          <ul><li><a href="portal.html?page=student-life">学生天地</a></li><li><a href="portal.html?page=home-school">家校联盟</a></li><li><a href="portal.html?page=international">国际教育</a></li></ul>
         </div>
         <div>
           <h4>快速通道</h4>
-          <ul><li>招生信息</li><li>通知公告</li><li>联系我们</li></ul>
+          <ul><li><a href="portal.html?page=admissions">招生信息</a></li><li><a href="portal.html?page=notices">通知公告</a></li><li><a href="portal.html?page=contact">联系我们</a></li></ul>
         </div>
       </div>
     </div>
@@ -1355,6 +1369,24 @@
   </footer>
 
   <script>
+    (() => {
+      const block = event => {
+        event.preventDefault();
+        event.stopPropagation();
+      };
+      document.addEventListener('contextmenu', block, true);
+      document.addEventListener('dragstart', block, true);
+      document.addEventListener('selectstart', block, true);
+      document.addEventListener('keydown', event => {
+        const key = event.key.toLowerCase();
+        const isDevToolsKey = event.key === 'F12'
+          || (event.ctrlKey && event.shiftKey && ['i','j','c'].includes(key))
+          || (event.metaKey && event.altKey && ['i','j','c'].includes(key))
+          || ((event.ctrlKey || event.metaKey) && ['u','s'].includes(key));
+        if (isDevToolsKey) block(event);
+      }, true);
+    })();
+
     const scrollProgress = document.querySelector('.scroll-progress');
     const updateScrollEffects = ()=>{
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
@@ -1419,6 +1451,47 @@
         card.style.transform = '';
       });
     });
+
+    const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({
+      '&':'&amp;',
+      '<':'&lt;',
+      '>':'&gt;',
+      '"':'&quot;',
+      "'":'&#39;'
+    }[char]));
+
+    async function syncHomeOfficialNews(){
+      const status = document.getElementById('home-official-news-status');
+      const list = document.getElementById('home-official-news-list');
+      if (!status || !list || location.protocol === 'file:') return;
+      try {
+        status.textContent = '正在同步北京中学官网最新动态...';
+        const response = await fetch('/api/news/official?limit=3');
+        if (!response.ok) throw new Error('official news request failed');
+        const data = await response.json();
+        const items = Array.isArray(data.items) ? data.items.slice(0, 3) : [];
+        if (!items.length) {
+          status.textContent = '官网最新动态暂时没有读取到内容。';
+          return;
+        }
+        status.textContent = `已同步官网最新动态 ${items.length} 条，更新时间：${new Date(data.fetchedAt).toLocaleString('zh-CN')}`;
+        list.innerHTML = items.map((item, index) => `
+          <a class="news-card ${index === 0 ? 'large' : ''}" href="${escapeHtml(item.url)}" target="_blank" rel="noopener">
+            <div class="news-img"></div>
+            <div class="news-body">
+              <time>${escapeHtml(item.date || '官网')}</time>
+              <h3>${escapeHtml(item.title)}</h3>
+              <p>自动同步自北京中学官网“最新动态”栏目，点击打开官网原文。</p>
+            </div>
+          </a>
+        `).join('');
+      } catch (error) {
+        console.error(error);
+        status.textContent = '官网动态同步失败，当前显示站内备用新闻。';
+      }
+    }
+
+    syncHomeOfficialNews();
 
     const slides = document.querySelectorAll('.hero-slide');
     const dots = document.querySelectorAll('.hero-dot');
