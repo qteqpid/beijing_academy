@@ -697,6 +697,31 @@
       box-shadow:0 10px 26px rgba(18,24,40,.055);
       padding:18px;
     }
+    .post-author-row{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+    }
+    .forum-avatar{
+      width:44px;
+      height:44px;
+      flex:0 0 44px;
+      display:grid;
+      place-items:center;
+      overflow:hidden;
+      border:2px solid #fff;
+      background:linear-gradient(135deg,#b50018,#151515);
+      color:#fff;
+      font-size:18px;
+      font-weight:900;
+      box-shadow:0 8px 22px rgba(18,24,40,.14);
+    }
+    .forum-avatar img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
     .student-post header{
       display:flex;
       justify-content:space-between;
@@ -755,6 +780,19 @@
       padding:10px 12px;
       color:#444;
       line-height:1.7;
+    }
+    .reply-author-row{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+    }
+    .reply .forum-avatar{
+      width:34px;
+      height:34px;
+      flex-basis:34px;
+      font-size:14px;
+      box-shadow:none;
+      border-width:1px;
     }
     .back-to-top{
       position:fixed;
@@ -841,6 +879,189 @@
       color:#f8fafc;
       white-space:normal;
       overflow-wrap:anywhere;
+    }
+    .profile-shell{
+      display:grid;
+      gap:18px;
+    }
+    .profile-hero-card{
+      overflow:hidden;
+      border:1px solid var(--line);
+      background:#fff;
+      box-shadow:var(--shadow);
+    }
+    .profile-cover{
+      min-height:176px;
+      background:
+        linear-gradient(120deg,rgba(181,0,24,.92),rgba(20,20,20,.82)),
+        url("bjzx-hero-1.jpg") center/cover no-repeat;
+      position:relative;
+    }
+    .profile-cover::after{
+      content:"";
+      position:absolute;
+      inset:auto 0 0;
+      height:70px;
+      background:linear-gradient(180deg,transparent,rgba(0,0,0,.32));
+    }
+    .profile-head{
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      gap:18px;
+      align-items:end;
+      padding:0 24px 24px;
+      margin-top:-48px;
+      position:relative;
+      z-index:1;
+    }
+    .profile-avatar{
+      width:104px;
+      height:104px;
+      display:grid;
+      place-items:center;
+      overflow:hidden;
+      border:5px solid #fff;
+      background:linear-gradient(135deg,#b50018,#151515);
+      color:#fff;
+      font-size:42px;
+      font-weight:900;
+      box-shadow:0 16px 34px rgba(18,24,40,.18);
+    }
+    .profile-avatar img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .profile-name h3{
+      font-size:28px;
+      line-height:1.2;
+      margin-bottom:6px;
+    }
+    .profile-name p{
+      color:var(--muted);
+      line-height:1.6;
+      font-weight:800;
+    }
+    .profile-stats{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px;
+      margin-top:18px;
+    }
+    .profile-stat{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg,#fff,var(--cream));
+      padding:18px;
+      min-height:100px;
+    }
+    .profile-stat strong{
+      display:block;
+      color:var(--red);
+      font-size:32px;
+      line-height:1;
+      margin-bottom:8px;
+    }
+    .profile-stat span{
+      color:#555;
+      font-weight:900;
+    }
+    .profile-tabs{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      border:1px solid var(--line);
+      background:#fff;
+      padding:12px;
+      box-shadow:0 10px 26px rgba(18,24,40,.045);
+    }
+    .profile-tabs button{
+      border:1px solid rgba(181,0,24,.2);
+      background:#fff;
+      color:#8b0011;
+      font-weight:900;
+      padding:10px 13px;
+      cursor:pointer;
+      transition:background .2s ease,transform .2s ease,border-color .2s ease;
+    }
+    .profile-tabs button:hover,
+    .profile-tabs button.active{
+      background:var(--red);
+      color:#fff;
+      border-color:var(--red);
+      transform:translateY(-2px);
+    }
+    .profile-list{
+      display:grid;
+      gap:12px;
+    }
+    .profile-item{
+      border:1px solid var(--line);
+      background:#fff;
+      padding:18px;
+      box-shadow:0 10px 26px rgba(18,24,40,.055);
+    }
+    .profile-item h3{
+      font-size:21px;
+      line-height:1.35;
+      margin-bottom:7px;
+    }
+    .profile-item p{
+      color:#444;
+      line-height:1.75;
+      margin-top:10px;
+    }
+    .profile-like-list{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:12px;
+    }
+    .profile-like-list span{
+      background:#fff7f8;
+      border:1px solid rgba(181,0,24,.18);
+      color:#8b0011;
+      padding:6px 9px;
+      font-size:13px;
+      font-weight:900;
+    }
+    .avatar-picker{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      margin-top:12px;
+    }
+    .avatar-picker input{
+      width:1px;
+      height:1px;
+      opacity:0;
+      overflow:hidden;
+      position:absolute;
+      pointer-events:none;
+    }
+    .avatar-picker label{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      background:#fff;
+      color:var(--red);
+      border:1px solid rgba(181,0,24,.28);
+      font-weight:900;
+      padding:11px 15px;
+      cursor:pointer;
+      transition:transform .2s ease,background .2s ease,border-color .2s ease;
+    }
+    .avatar-picker label:hover{
+      background:#fff7f8;
+      border-color:rgba(181,0,24,.48);
+      transform:translateY(-2px);
+    }
+    .avatar-hint{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.6;
+      font-weight:800;
     }
     .feature-grid{
       display:grid;
@@ -1267,6 +1488,8 @@
       .official-gallery a{min-height:220px}
       .forum-login-form{grid-template-columns:1fr}
       .forum-userbar{align-items:flex-start;flex-direction:column}
+      .profile-head{grid-template-columns:1fr;align-items:start}
+      .profile-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
       .campus-map-board{grid-template-columns:1fr}
       .campus-map-panel{border-left:0;border-top:1px solid var(--line)}
       .campus-map-canvas{min-height:360px}
@@ -1286,6 +1509,7 @@
         <a href="portal.html?page=about">学校概况</a>
         <a href="portal.html?page=academics">教学科研</a>
         <a href="portal.html?page=student-life">校园文化</a>
+        <a href="portal.html?page=profile">个人中心</a>
       </nav>
     </div>
   </header>
@@ -1563,6 +1787,7 @@
             <div class="feature"><em>Sports</em><h3>运动健康</h3><p>用体育建立节奏、力量和团队意识。</p></div>
             <div class="feature"><em>Arts</em><h3>艺术表达</h3><p>让音乐、美术、戏剧和设计进入日常表达。</p></div>
             <a class="feature" href="portal.html?page=forum"><em>Forum</em><h3>学生论坛</h3><p>进入论坛发帖子、回复同学、点赞或投诉不合适的内容。</p></a>
+            <a class="feature" href="portal.html?page=profile"><em>Space</em><h3>个人中心</h3><p>查看自己的收藏、投稿记录，以及发出的帖子获得了多少点赞。</p></a>
           </div>
           <div class="forum-board">
             <div class="forum-post"><span>Hot Topic</span><strong>社团招新怎么介绍自己最清楚？</strong><p>可以从社团做什么、适合谁加入、需要投入多少时间、能学到什么四个角度写。避免只写“欢迎加入”，要让新同学真的能判断。</p></div>
@@ -1644,6 +1869,7 @@
                 <button class="forum-btn secondary" type="button" id="forum-upload">上传图片</button>
                 <button class="forum-btn light" type="button" id="forum-reset-demo">恢复示例帖子</button>
                 <a class="forum-btn light" href="portal.html?page=admin">进入后台</a>
+                <a class="forum-btn light" href="portal.html?page=profile">个人中心</a>
               </div>
               <div class="forum-status" id="forum-status" aria-live="polite"></div>
             </form>
@@ -1658,6 +1884,25 @@
               <li>投诉超过 5 次的帖子会自动删除；这个机制在当前浏览器本地运行。</li>
               <li>表情包包含潮流文字贴纸、网络 meme 和常用表情，搜索框可以按名称、标签或插入码筛选。</li>
             </ul>
+          </div>`
+      },
+      profile:{
+        title:"个人中心",
+        crumb:"个人中心",
+        kicker:"My Space",
+        hero:"url('bjzx-hero-1.jpg')",
+        summary:"查看当前账号在学生论坛中的收藏、投稿和获赞情况。",
+        html:`
+          <h2 class="section-title">我的论坛空间</h2>
+          <p class="lead">个人中心参考视频社区个人主页的结构，把账号资料、收藏夹、投稿记录和获赞明细放到同一页。登录后可以直接查看当前账号的数据，未登录时会提示先进入论坛登录。</p>
+          <div class="profile-shell" id="profile-app">
+            <section class="profile-hero-card">
+              <div class="profile-cover"></div>
+              <div class="profile-head" id="profile-head"></div>
+            </section>
+            <div class="profile-stats" id="profile-stats"></div>
+            <div class="profile-tabs" id="profile-tabs" aria-label="个人内容筛选"></div>
+            <div class="profile-list" id="profile-list"></div>
           </div>`
       },
       admin:{
@@ -1692,6 +1937,8 @@
               <code>POST /api/forum/posts · 发布帖子，提交 author/title/content/category/userId</code>
               <code>POST /api/forum/posts/:id/like · 切换点赞状态，提交 userId；未点赞则点赞，已点赞则取消</code>
               <code>POST /api/forum/posts/:id/favorite · 切换收藏状态，提交 userId；收藏后出现在“我的收藏”</code>
+              <code>GET /api/forum/users/:id/profile · 获取当前账号的收藏、投稿、获赞和回复统计</code>
+              <code>PUT /api/forum/users/:id/profile · 更新当前账号昵称或头像，头像保存为 avatarUrl</code>
               <code>POST /api/forum/posts/:id/report · 投诉帖子，提交 userId/reason，超过 5 个不同用户后删除或进入审核</code>
               <code>POST /api/forum/posts/:id/replies · 发布回复，提交 author/content/userId</code>
               <code>DELETE /api/forum/posts/:id/replies/:replyId · 后台删除单条回复</code>
@@ -2028,6 +2275,7 @@
       "home-school":["sections","official"],
       international:["sections","news","official"],
       forum:["sections","stickers"],
+      profile:["sections","stickers"],
       admin:["sections","stickers"]
     };
 
@@ -2061,7 +2309,7 @@
     const navGroups = [
       ["news","最新动态"],["about","学校概况"],["intro","学校简介"],["philosophy","办学理念"],
       ["academics","教学科研"],["curriculum","课程体系"],["project-learning","项目学习"],["research","教学研究"],
-      ["campus-tour","校园导览"],["campus-gallery","高清照片墙"],["campus-map","查看地图"],["student-life","学生天地"],["forum","学生论坛"],["admin","论坛后台"],["home-school","家校联盟"],
+      ["campus-tour","校园导览"],["campus-gallery","高清照片墙"],["campus-map","查看地图"],["student-life","学生天地"],["forum","学生论坛"],["profile","个人中心"],["admin","论坛后台"],["home-school","家校联盟"],
       ["international","国际教育"],["admissions","招生信息"],["notices","通知公告"],["contact","联系我们"]
     ];
     const sideLinks = document.getElementById("side-links");
@@ -2461,7 +2709,9 @@
         sensitiveWords:"/moderation/sensitive-words",
         clearReports:"/posts/:id/reports",
         resetReports:"/reports",
-        restoreDemo:"/demo"
+        restoreDemo:"/demo",
+        profile:"/users/:id/profile",
+        updateProfile:"/users/:id/profile"
       }
     };
     const externalForumConfig = window.bjzxForumServerConfig || {};
@@ -2493,6 +2743,23 @@
       localStorage.setItem(forumSessionKey, JSON.stringify(session));
       localStorage.setItem(forumUserKey, session.id);
       return session;
+    }
+
+    function avatarLetter(name){
+      return Array.from(String(name || "我").trim())[0] || "我";
+    }
+
+    function renderAvatar(name, avatarUrl = "", className = "forum-avatar"){
+      const safeName = escapeHtml(name || "论坛用户");
+      if (avatarUrl) {
+        return `<span class="${className}" aria-label="${safeName}的头像"><img src="${avatarUrl}" alt="${safeName}的头像"></span>`;
+      }
+      return `<span class="${className}" aria-label="${safeName}的头像">${escapeHtml(avatarLetter(safeName))}</span>`;
+    }
+
+    function currentUserAvatar(userId){
+      const session = getForumSession();
+      return session && session.id === userId ? session.avatarUrl || "" : "";
     }
 
     const defaultForumPosts = [
@@ -2590,10 +2857,11 @@
           favoritedBy,
           favorites:favoritedBy.length,
           ownerId:post.ownerId || "",
+          authorAvatar:post.authorAvatar || "",
           reportedBy,
           reports:reportedBy.length,
           replies:Array.isArray(post.replies)
-            ? post.replies.map((reply, index) => ({id:reply.id || `reply-${post.id}-${index}`, ...reply}))
+            ? post.replies.map((reply, index) => ({id:reply.id || `reply-${post.id}-${index}`, ownerId:reply.ownerId || "", avatarUrl:reply.avatarUrl || "", ...reply}))
             : []
         };
       });
@@ -2692,7 +2960,7 @@
       },
       async addReply(postId, reply, posts){
         if (forumServerConfig.useServer) {
-          return normalizeForumPosts(await this.request("reply", {method:"POST", body:JSON.stringify(reply)}, postId));
+          return normalizeForumPosts(await this.request("reply", {method:"POST", body:JSON.stringify({...reply, userId:getForumUserId()})}, postId));
         }
         return this.savePosts(posts.map(post => post.id === postId ? {...post, replies:[...post.replies, reply]} : post));
       },
@@ -2736,6 +3004,55 @@
           return normalizeForumPosts(await this.request("restoreDemo", {method:"POST", body:JSON.stringify(defaultForumPosts)}));
         }
         return this.savePosts(defaultForumPosts);
+      },
+      async getProfile(userId, posts){
+        if (forumServerConfig.useServer) {
+          try {
+            return this.request("profile", {}, userId);
+          } catch (error) {
+            console.error(error);
+          }
+        }
+        const session = getForumSession();
+        const ownedPosts = posts.filter(post => post.ownerId === userId);
+        const favorites = posts.filter(post => post.favoritedBy.includes(userId));
+        const receivedLikes = ownedPosts.reduce((total, post) => total + post.likedBy.length, 0);
+        return {
+          user:session ? {id:session.id, username:session.username, displayName:session.displayName} : {id:userId, username:userId, displayName:"游客"},
+          stats:{
+            posts:ownedPosts.length,
+            favorites:favorites.length,
+            receivedLikes,
+            replies:ownedPosts.reduce((total, post) => total + post.replies.length, 0)
+          },
+          posts:ownedPosts,
+          favorites,
+          likedDetails:ownedPosts.map(post => ({
+            id:post.id,
+            title:post.title,
+            likedBy:post.likedBy,
+            likes:post.likedBy.length,
+            createdAt:post.createdAt
+          }))
+        };
+      },
+      async updateProfile(userId, profile, posts = []){
+        if (forumServerConfig.useServer) {
+          return this.request("updateProfile", {method:"PUT", body:JSON.stringify(profile)}, userId);
+        }
+        const session = getForumSession();
+        if (session && session.id === userId) {
+          saveForumSession({...session, ...profile});
+        }
+        const updatedPosts = normalizeForumPosts(posts).map(post => {
+          const nextPost = post.ownerId === userId ? {...post, authorAvatar:profile.avatarUrl || ""} : post;
+          return {
+            ...nextPost,
+            replies:nextPost.replies.map(reply => reply.ownerId === userId ? {...reply, avatarUrl:profile.avatarUrl || ""} : reply)
+          };
+        });
+        await this.savePosts(updatedPosts);
+        return {user:{...(session || {id:userId}), ...profile}, posts:updatedPosts};
       },
       async uploadImage(file){
         if (!forumServerConfig.useServer) throw new Error("Image upload API is reserved but not enabled");
@@ -2804,7 +3121,7 @@
         const loggedIn = Boolean(forumSession && forumSession.id);
         loginCard.style.display = loggedIn ? "none" : "grid";
         userbar.innerHTML = loggedIn
-          ? `<div>已登录：${escapeHtml(forumSession.displayName || forumSession.username)}<span>@${escapeHtml(forumSession.username || forumSession.id)}</span></div><button class="forum-btn light" type="button" id="forum-logout">退出登录</button>`
+          ? `<div class="post-author-row">${renderAvatar(forumSession.displayName || forumSession.username, forumSession.avatarUrl || "")}<div>已登录：${escapeHtml(forumSession.displayName || forumSession.username)}<span>@${escapeHtml(forumSession.username || forumSession.id)}</span></div></div><button class="forum-btn light" type="button" id="forum-logout">退出登录</button>`
           : `<div>游客浏览模式<span>登录后可发帖、回复、点赞、收藏和投诉</span></div>`;
         form.classList.toggle("is-disabled", !loggedIn);
         form.querySelectorAll("input,select,textarea,button").forEach(element => {
@@ -2939,9 +3256,12 @@
         feed.innerHTML = visiblePosts.map(post => `
           <article class="student-post" data-id="${post.id}">
             <header>
-              <div>
-                <h3>${escapeHtml(post.title)}</h3>
-                <div class="post-meta"><span class="post-category">${escapeHtml(categoryLabel(post.category))}</span>发布者：${escapeHtml(post.author)} · ${escapeHtml(post.createdAt)} · 收藏 ${post.favoritedBy.length} · 投诉 ${post.reportedBy.length}/6</div>
+              <div class="post-author-row">
+                ${renderAvatar(post.author, post.authorAvatar || currentUserAvatar(post.ownerId))}
+                <div>
+                  <h3>${escapeHtml(post.title)}</h3>
+                  <div class="post-meta"><span class="post-category">${escapeHtml(categoryLabel(post.category))}</span>发布者：${escapeHtml(post.author)} · ${escapeHtml(post.createdAt)} · 收藏 ${post.favoritedBy.length} · 投诉 ${post.reportedBy.length}/6</div>
+                </div>
               </div>
             </header>
             <div class="post-body">${renderForumText(post.content)}</div>
@@ -2952,7 +3272,7 @@
               ${post.ownerId === forumUserId ? `<button class="forum-btn secondary" type="button" data-action="delete-own">删除我的帖子</button>` : ""}
             </div>
             <div class="reply-list">
-              ${post.replies.map(reply => `<div class="reply"><strong>${escapeHtml(reply.author)}</strong> · <small>${escapeHtml(reply.createdAt)}</small><br>${renderForumText(reply.content)}</div>`).join("")}
+              ${post.replies.map(reply => `<div class="reply"><div class="reply-author-row">${renderAvatar(reply.author, reply.avatarUrl || currentUserAvatar(reply.ownerId))}<div><strong>${escapeHtml(reply.author)}</strong> · <small>${escapeHtml(reply.createdAt)}</small><br>${renderForumText(reply.content)}</div></div></div>`).join("")}
             </div>
             <form class="reply-box" data-action="reply">
               <label>回复内容</label>
@@ -2993,6 +3313,7 @@
             content,
             category,
             ownerId:forumUserId,
+            authorAvatar:forumSession.avatarUrl || "",
             likes:0,
             likedBy:[],
             reportedBy:[],
@@ -3087,7 +3408,7 @@
           return;
         }
         try {
-          posts = await forumApi.addReply(post.id, {id:createForumId("reply"), author, content, createdAt:nowLabel()}, posts);
+          posts = await forumApi.addReply(post.id, {id:createForumId("reply"), author, content, ownerId:forumUserId, avatarUrl:forumSession.avatarUrl || "", createdAt:nowLabel()}, posts);
           renderPosts();
           setStatus("回复已发布。");
         } catch (error) {
@@ -3110,6 +3431,195 @@
     }
 
     initForum();
+
+    async function initProfile(){
+      if (pageKey !== "profile") return;
+      const head = document.getElementById("profile-head");
+      const stats = document.getElementById("profile-stats");
+      const tabs = document.getElementById("profile-tabs");
+      const list = document.getElementById("profile-list");
+      if (!head || !stats || !tabs || !list) return;
+      let session = getForumSession();
+      const forumUserId = getForumUserId();
+      let posts = await forumApi.listPosts();
+      let profile = await forumApi.getProfile(forumUserId, posts);
+      let activeTab = "favorites";
+      const categoryLabel = id => (forumCategories.find(category => category.id === id) || forumCategories[0]).label;
+
+      function getDisplayName(){
+        return session ? (session.displayName || session.username || "论坛用户") : "未登录用户";
+      }
+
+      function getUsername(){
+        return session ? (session.username || session.id) : "请先登录论坛账号";
+      }
+
+      function getAvatarUrl(){
+        return (session && session.avatarUrl) || (profile.user && profile.user.avatarUrl) || "";
+      }
+
+      function fileToAvatarDataUrl(file){
+        return new Promise((resolve, reject) => {
+          if (!file || !file.type.startsWith("image/")) {
+            reject(new Error("invalid_image"));
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = () => {
+            const image = new Image();
+            image.onload = () => {
+              const size = 320;
+              const canvas = document.createElement("canvas");
+              canvas.width = size;
+              canvas.height = size;
+              const context = canvas.getContext("2d");
+              const side = Math.min(image.width, image.height);
+              const sx = (image.width - side) / 2;
+              const sy = (image.height - side) / 2;
+              context.drawImage(image, sx, sy, side, side, 0, 0, size, size);
+              resolve(canvas.toDataURL("image/jpeg", .86));
+            };
+            image.onerror = () => reject(new Error("invalid_image"));
+            image.src = reader.result;
+          };
+          reader.onerror = () => reject(new Error("read_failed"));
+          reader.readAsDataURL(file);
+        });
+      }
+
+      const renderPostItem = (post, mode) => `
+        <article class="profile-item">
+          <h3>${escapeHtml(post.title)}</h3>
+          <div class="post-meta">
+            <span class="post-category">${escapeHtml(categoryLabel(post.category))}</span>
+            ${mode === "favorite" ? `作者：${escapeHtml(post.author)}` : "我的投稿"} · ${escapeHtml(post.createdAt)} · 点赞 ${post.likedBy.length} · 收藏 ${post.favoritedBy.length}
+          </div>
+          <p>${renderForumText(post.content)}</p>
+          <div class="forum-toolbar">
+            <a class="forum-btn light" href="portal.html?page=forum">去论坛查看</a>
+          </div>
+        </article>
+      `;
+
+      const renderLikeItem = item => `
+        <article class="profile-item">
+          <h3>${escapeHtml(item.title)}</h3>
+          <div class="post-meta">发布时间：${escapeHtml(item.createdAt)} · 收到点赞 ${item.likes}</div>
+          ${item.likedBy.length
+            ? `<div class="profile-like-list">${item.likedBy.map(id => `<span>${escapeHtml(id.startsWith("legacy-like") ? "历史点赞用户" : id)}</span>`).join("")}</div>`
+            : `<p>这条帖子暂时还没有收到点赞。</p>`}
+        </article>
+      `;
+
+      function renderTabs(){
+        const tabItems = [
+          ["favorites", `我的收藏 ${profile.favorites.length}`],
+          ["posts", `我的投稿 ${profile.posts.length}`],
+          ["likes", `获赞明细 ${profile.stats.receivedLikes}`]
+        ];
+        tabs.innerHTML = tabItems.map(([id, label]) =>
+          `<button type="button" class="${activeTab === id ? "active" : ""}" data-profile-tab="${id}">${label}</button>`
+        ).join("");
+      }
+
+      function renderList(){
+        if (!session) {
+          list.innerHTML = `
+            <div class="empty-forum">
+              当前还没有登录论坛账号。请先进入学生论坛登录或注册，然后回到个人中心查看收藏、投稿和获赞。
+              <div class="forum-toolbar"><a class="forum-btn" href="portal.html?page=forum">去论坛登录</a></div>
+            </div>`;
+          return;
+        }
+        if (activeTab === "favorites") {
+          list.innerHTML = profile.favorites.length
+            ? profile.favorites.map(post => renderPostItem(post, "favorite")).join("")
+            : `<div class="empty-forum">收藏夹目前为空。可以在论坛帖子下方点击“收藏”。</div>`;
+          return;
+        }
+        if (activeTab === "posts") {
+          list.innerHTML = profile.posts.length
+            ? profile.posts.map(post => renderPostItem(post, "post")).join("")
+            : `<div class="empty-forum">你还没有发布过帖子。进入论坛后可以选择分区发布第一条内容。</div>`;
+          return;
+        }
+        list.innerHTML = profile.likedDetails.length
+          ? profile.likedDetails.map(renderLikeItem).join("")
+          : `<div class="empty-forum">你还没有发布过帖子，因此暂无获赞记录。</div>`;
+      }
+
+      function renderHead(){
+        const displayName = getDisplayName();
+        const avatarUrl = getAvatarUrl();
+        head.innerHTML = `
+          ${renderAvatar(displayName, avatarUrl, "profile-avatar")}
+          <div class="profile-name">
+            <h3>${escapeHtml(displayName)}</h3>
+            <p>@${escapeHtml(getUsername())} · ${session ? "论坛账号已登录" : "游客状态"}</p>
+            ${session ? `
+              <div class="avatar-picker">
+                <label for="profile-avatar-input">更换头像</label>
+                <input id="profile-avatar-input" type="file" accept="image/*">
+                <span class="avatar-hint">建议使用正方形图片，保存后论坛里的头像会同步更新。</span>
+              </div>` : ""}
+          </div>
+          <div class="forum-toolbar">
+            <a class="forum-btn" href="portal.html?page=forum">进入论坛</a>
+            ${session ? `<button class="forum-btn light" type="button" id="profile-logout">退出登录</button>` : ""}
+          </div>
+        `;
+      }
+
+      function renderStats(){
+        stats.innerHTML = [
+          ["投稿", profile.stats.posts],
+          ["收藏", profile.stats.favorites],
+          ["获赞", profile.stats.receivedLikes],
+          ["回复", profile.stats.replies]
+        ].map(([label, value]) => `<div class="profile-stat"><strong>${value}</strong><span>${label}</span></div>`).join("");
+      }
+
+      renderHead();
+      renderStats();
+      renderTabs();
+      renderList();
+
+      tabs.addEventListener("click", event => {
+        const button = event.target.closest("button[data-profile-tab]");
+        if (!button) return;
+        activeTab = button.dataset.profileTab;
+        renderTabs();
+        renderList();
+      });
+      head.addEventListener("click", event => {
+        if (!event.target.closest("#profile-logout")) return;
+        localStorage.removeItem(forumSessionKey);
+        localStorage.removeItem(forumUserKey);
+        window.location.reload();
+      });
+      head.addEventListener("change", async event => {
+        const input = event.target.closest("#profile-avatar-input");
+        if (!input || !session) return;
+        const file = input.files && input.files[0];
+        if (!file) return;
+        try {
+          const avatarUrl = await fileToAvatarDataUrl(file);
+          const result = await forumApi.updateProfile(forumUserId, {avatarUrl}, posts);
+          session = saveForumSession({...session, avatarUrl});
+          posts = normalizeForumPosts(result.posts || await forumApi.listPosts());
+          profile = await forumApi.getProfile(forumUserId, posts);
+          renderHead();
+          renderStats();
+          renderTabs();
+          renderList();
+        } catch (error) {
+          console.error(error);
+          list.innerHTML = `<div class="empty-forum">头像保存失败，请换一张 JPG、PNG 或 WebP 图片再试。</div>`;
+        }
+      });
+    }
+
+    initProfile();
 
     async function initAdmin(){
       if (pageKey !== "admin") return;

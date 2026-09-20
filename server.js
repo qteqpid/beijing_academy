@@ -158,6 +158,7 @@ function normalizePosts(posts){
       content:String(post.content || "").slice(0, 800),
       category:String(post.category || "campus").slice(0, 24),
       ownerId:String(post.ownerId || ""),
+      authorAvatar:String(post.authorAvatar || ""),
       likedBy,
       likes:likedBy.length,
       favoritedBy,
@@ -169,10 +170,46 @@ function normalizePosts(posts){
         id:reply.id || `reply-${post.id || "post"}-${index}`,
         author:String(reply.author || "匿名同学").slice(0, 24),
         content:String(reply.content || "").slice(0, 500),
+        ownerId:String(reply.ownerId || ""),
+        avatarUrl:String(reply.avatarUrl || ""),
         createdAt:reply.createdAt || nowLabel()
       })) : []
     };
   });
+}
+
+function buildUserProfile(userId){
+  const posts = readPosts();
+  const users = readUsers();
+  const userMap = new Map(users.map(user => [user.id, user]));
+  const user = userMap.get(userId) || {id:userId, username:userId, displayName:"论坛用户"};
+  const ownedPosts = posts.filter(post => post.ownerId === userId);
+  const favorites = posts.filter(post => post.favoritedBy.includes(userId));
+  const receivedLikes = ownedPosts.reduce((total, post) => total + post.likedBy.length, 0);
+  const nameFor = id => {
+    const found = userMap.get(id);
+    if (found) return found.displayName || found.username || found.id;
+    if (String(id).startsWith("legacy-like")) return "历史点赞用户";
+    return id;
+  };
+  return {
+    user:{id:user.id, username:user.username, displayName:user.displayName, avatarUrl:user.avatarUrl || ""},
+    stats:{
+      posts:ownedPosts.length,
+      favorites:favorites.length,
+      receivedLikes,
+      replies:ownedPosts.reduce((total, post) => total + post.replies.length, 0)
+    },
+    posts:ownedPosts,
+    favorites,
+    likedDetails:ownedPosts.map(post => ({
+      id:post.id,
+      title:post.title,
+      likes:post.likedBy.length,
+      likedBy:post.likedBy.map(nameFor),
+      createdAt:post.createdAt
+    }))
+  };
 }
 
 function createId(prefix){
@@ -305,18 +342,50 @@ async function handleApi(req, res, url){
       return sendJson(res, 403, {error:"wrong_password", message:"密码不正确。"});
     }
     if (!user) {
-      user = {id:`user-${username}`, username, displayName, passwordHash, createdAt:nowLabel()};
+      user = {id:`user-${username}`, username, displayName, passwordHash, avatarUrl:"", createdAt:nowLabel()};
       users.push(user);
       saveUsers(users);
     } else if (displayName && user.displayName !== displayName) {
       user.displayName = displayName;
       saveUsers(users);
     }
-    return sendJson(res, 200, {user:{id:user.id, username:user.username, displayName:user.displayName}});
+    return sendJson(res, 200, {user:{id:user.id, username:user.username, displayName:user.displayName, avatarUrl:user.avatarUrl || ""}});
   }
 
   if (url.pathname === "/api/forum/posts" && req.method === "GET") {
     return sendJson(res, 200, {posts:readPosts()});
+  }
+  const profileMatch = url.pathname.match(/^\/api\/forum\/users\/([^/]+)\/profile$/);
+  if (profileMatch && req.method === "GET") {
+    return sendJson(res, 200, buildUserProfile(decodeURIComponent(profileMatch[1])));
+  }
+  if (profileMatch && req.method === "PUT") {
+    const userId = decodeURIComponent(profileMatch[1]);
+    const body = await readBody(req);
+    const users = readUsers();
+    let user = users.find(item => item.id === userId);
+    if (!user) {
+      user = {id:userId, username:userId.replace(/^user-/, ""), displayName:body.displayName || "论坛用户", passwordHash:"", avatarUrl:"", createdAt:nowLabel()};
+      users.push(user);
+    }
+    if (typeof body.displayName === "string" && body.displayName.trim()) {
+      user.displayName = body.displayName.trim().slice(0, 24);
+    }
+    if (typeof body.avatarUrl === "string") {
+      if (body.avatarUrl.length > 650000) {
+        return sendJson(res, 413, {error:"avatar_too_large", message:"头像图片过大。"});
+      }
+      user.avatarUrl = body.avatarUrl;
+    }
+    saveUsers(users);
+    const posts = savePosts(readPosts().map(post => {
+      const nextPost = post.ownerId === userId ? {...post, authorAvatar:user.avatarUrl || ""} : post;
+      return {
+        ...nextPost,
+        replies:nextPost.replies.map(reply => reply.ownerId === userId ? {...reply, avatarUrl:user.avatarUrl || ""} : reply)
+      };
+    }));
+    return sendJson(res, 200, {...buildUserProfile(userId), posts});
   }
   if (url.pathname === "/api/forum/posts" && req.method === "PUT") {
     const body = await readBody(req);
@@ -334,6 +403,7 @@ async function handleApi(req, res, url){
       content:body.content || "",
       category:body.category || "campus",
       ownerId:body.userId || "",
+      authorAvatar:String(body.authorAvatar || ""),
       likes:0,
       likedBy:[],
       favoritedBy:[],
@@ -393,7 +463,7 @@ async function handleApi(req, res, url){
     const blocked = findSensitiveWord(body.author, body.content);
     if (blocked) return sendJson(res, 400, {error:"sensitive_word", word:blocked});
     const postId = decodeURIComponent(replyMatch[1]);
-    const reply = {id:createId("reply"), author:body.author || "匿名同学", content:body.content || "", createdAt:nowLabel()};
+    const reply = {id:createId("reply"), author:body.author || "匿名同学", content:body.content || "", ownerId:body.userId || body.ownerId || "", avatarUrl:body.avatarUrl || "", createdAt:nowLabel()};
     const posts = readPosts().map(post => post.id === postId ? {...post, replies:[...post.replies, reply]} : post);
     return sendJson(res, 200, {posts:savePosts(posts)});
   }
