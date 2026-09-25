@@ -62,7 +62,7 @@
       border-bottom:1px solid var(--line);
       position:sticky;
       top:0;
-      z-index:20;
+      z-index:1000;
       backdrop-filter:blur(18px);
       transition:box-shadow .28s ease;
     }
@@ -851,6 +851,46 @@
       gap:16px;
       margin-top:22px;
     }
+    .admin-auth-card{
+      display:grid;
+      gap:14px;
+      border:1px solid var(--line);
+      border-top:6px solid var(--red);
+      background:linear-gradient(180deg,#fff,var(--cream));
+      box-shadow:var(--shadow);
+      padding:24px;
+      margin-bottom:22px;
+    }
+    .admin-auth-card h3{
+      font-size:24px;
+      line-height:1.35;
+    }
+    .admin-auth-card p{
+      color:var(--muted);
+      line-height:1.75;
+    }
+    .admin-auth-card label{
+      display:grid;
+      gap:8px;
+      color:#333;
+      font-weight:900;
+    }
+    .admin-auth-card input{
+      width:100%;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--ink);
+      font:inherit;
+      padding:13px 14px;
+      outline:none;
+    }
+    .admin-auth-card input:focus{
+      border-color:rgba(181,0,24,.48);
+      box-shadow:0 0 0 4px rgba(181,0,24,.08);
+    }
+    .admin-secure-area.is-locked{
+      display:none;
+    }
     .admin-item{
       border:1px solid var(--line);
       background:#fff;
@@ -866,6 +906,46 @@
       color:#555;
       line-height:1.75;
       margin:8px 0;
+    }
+    .admin-detail{
+      margin-top:14px;
+      padding:14px;
+      background:var(--soft);
+      border:1px solid var(--line);
+    }
+    .admin-detail[hidden]{
+      display:none;
+    }
+    .admin-detail h4{
+      font-size:17px;
+      margin:12px 0 8px;
+    }
+    .admin-section-title{
+      font-size:22px;
+      line-height:1.35;
+      margin:26px 0 12px;
+      padding-left:14px;
+      border-left:5px solid var(--red);
+    }
+    .admin-replies-board{
+      display:grid;
+      gap:10px;
+      border:1px solid var(--line);
+      background:#fff;
+      padding:14px;
+      box-shadow:0 10px 26px rgba(18,24,40,.045);
+    }
+    .admin-reply{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-start;
+      background:#fff;
+      border-left:4px solid var(--red);
+      padding:10px 12px;
+      margin-top:8px;
+      color:#444;
+      line-height:1.65;
     }
     .api-spec{
       display:grid;
@@ -1283,6 +1363,8 @@
       box-shadow:var(--shadow);
       overflow:hidden;
       margin:30px 0 24px;
+      position:relative;
+      z-index:0;
     }
     .campus-map-embed{
       border:1px solid var(--line);
@@ -1290,6 +1372,8 @@
       box-shadow:0 14px 38px rgba(18,24,40,.07);
       margin:-10px 0 24px;
       overflow:hidden;
+      position:relative;
+      z-index:0;
     }
     .campus-map-embed header{
       display:flex;
@@ -1318,6 +1402,13 @@
     .campus-map-canvas{
       min-height:460px;
       background:#eef3f5;
+      position:relative;
+      z-index:0;
+    }
+    .campus-map-canvas .leaflet-pane,
+    .campus-map-canvas .leaflet-top,
+    .campus-map-canvas .leaflet-bottom{
+      z-index:1;
     }
     .campus-map-canvas .leaflet-popup-content{
       font-family:"Microsoft Yahei","PingFang SC",sans-serif;
@@ -1913,20 +2004,39 @@
         summary:"管理学生论坛的本地帖子数据：查看统计、删除帖子、清空投诉、导出数据和恢复示例。",
         html:`
           <h2 class="section-title">论坛后台管理</h2>
-          <p class="lead">论坛后台用于管理帖子、回复、点赞与投诉数据，支持导出、清理投诉和恢复示例内容。正式部署时可接入账号权限、服务器数据库与审核日志。</p>
-          <div class="admin-grid" id="admin-stats"></div>
-          <div class="forum-toolbar">
-            <button class="forum-btn" type="button" id="admin-export">导出帖子数据</button>
-            <button class="forum-btn light" type="button" id="admin-reset-reports">清空所有投诉</button>
-            <button class="forum-btn secondary" type="button" id="admin-restore-demo">恢复示例帖子</button>
+          <p class="lead">论坛后台用于管理帖子、回复、点赞与投诉数据。进入后台前需要通过认证，通过后才能查看帖子细节、管理回复、导出数据和清理投诉。</p>
+          <section class="admin-auth-card" id="admin-auth-card">
+            <h3>后台认证</h3>
+            <p>请输入认证答案后进入后台。</p>
+            <form id="admin-auth-form">
+              <label>wyj是什么<input id="admin-auth-answer" autocomplete="off" placeholder="请输入答案"></label>
+              <div class="forum-toolbar">
+                <button class="forum-btn" type="submit">进入后台</button>
+              </div>
+            </form>
+          </section>
+          <div class="admin-secure-area is-locked" id="admin-secure-area">
+            <div class="admin-grid" id="admin-stats"></div>
+            <div class="forum-toolbar">
+              <button class="forum-btn" type="button" id="admin-export">导出帖子数据</button>
+              <button class="forum-btn light" type="button" id="admin-reset-reports">清空所有投诉</button>
+              <button class="forum-btn secondary" type="button" id="admin-restore-demo">恢复示例帖子</button>
+              <button class="forum-btn light" type="button" id="admin-lock">退出后台</button>
+            </div>
+            <h3 class="admin-section-title">全部回复管理</h3>
+            <div class="admin-replies-board" id="admin-replies-board"></div>
+            <h3 class="admin-section-title">帖子管理</h3>
+            <div class="admin-list" id="admin-list"></div>
           </div>
           <div class="forum-status" id="admin-status" aria-live="polite"></div>
-          <div class="admin-list" id="admin-list"></div>
           <div class="rich-section">
             <h3>后台能力说明</h3>
             <ul class="detail-list">
-              <li>删除帖子：直接从当前浏览器保存的数据中移除。</li>
-              <li>清空投诉：把所有帖子的投诉记录清零，适合误点投诉后恢复。</li>
+              <li>后台需要通过认证后才显示管理区域。</li>
+              <li>展开详情：查看帖子正文、点赞账号、收藏账号、投诉账号和全部回复。</li>
+              <li>管理回复：可以删除帖子下面的单条回复。</li>
+              <li>删除帖子：从当前论坛数据中移除整条帖子及其回复。</li>
+              <li>清空投诉：把所有帖子的投诉记录清零。</li>
               <li>导出数据：把帖子、回复、点赞、投诉记录导出为 JSON 文件。</li>
               <li>论坛接口支持登录、帖子列表、分区发帖、回复、点赞、收藏、投诉、删除、敏感词审核和数据导出。</li>
               <li>正式部署建议接入账号权限、服务器数据库、审核队列和操作日志。</li>
@@ -2678,8 +2788,10 @@
     const forumExpandedSensitiveWords = expandSensitiveWords(forumSensitiveWords);
 
     const forumStorageKey = "bjzxStudentForumPosts";
+    const forumLocalUsersKey = "bjzxStudentForumUsers";
     const forumUserKey = "bjzxStudentForumUserId";
     const forumSessionKey = "bjzxStudentForumSession";
+    const forumAdminSessionKey = "bjzxForumAdminSession";
     const forumCategoryKey = "bjzxStudentForumCategory";
     const forumCategories = [
       {id:"all", label:"全部帖子"},
@@ -2691,7 +2803,7 @@
       {id:"favorites", label:"我的收藏"}
     ];
     const forumServerConfig = {
-      useServer:location.protocol.startsWith("http") && /^(localhost|127\\.0\\.0\\.1)$/.test(location.hostname),
+      useServer:location.protocol.startsWith("http") && /^(localhost|127\.0\.0\.1)$/.test(location.hostname),
       baseUrl:"/api/forum",
       endpoints:{
         list:"/posts",
@@ -2760,6 +2872,39 @@
     function currentUserAvatar(userId){
       const session = getForumSession();
       return session && session.id === userId ? session.avatarUrl || "" : "";
+    }
+
+    function normalizeForumUsername(value){
+      return String(value || "").trim().toLowerCase().replace(/\s+/g, "_").slice(0, 24);
+    }
+
+    async function hashForumPassword(value){
+      const text = String(value || "");
+      if (window.crypto && window.crypto.subtle && window.TextEncoder) {
+        const bytes = new TextEncoder().encode(text);
+        const hashBuffer = await window.crypto.subtle.digest("SHA-256", bytes);
+        return Array.from(new Uint8Array(hashBuffer)).map(byte => byte.toString(16).padStart(2, "0")).join("");
+      }
+      let hash = 2166136261;
+      for (let index = 0; index < text.length; index += 1) {
+        hash ^= text.charCodeAt(index);
+        hash = Math.imul(hash, 16777619);
+      }
+      return `fallback-${(hash >>> 0).toString(16)}`;
+    }
+
+    function readForumLocalUsers(){
+      try {
+        const users = JSON.parse(localStorage.getItem(forumLocalUsersKey));
+        return Array.isArray(users) ? users : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveForumLocalUsers(users){
+      localStorage.setItem(forumLocalUsersKey, JSON.stringify(users));
+      return users;
     }
 
     const defaultForumPosts = [
@@ -2919,12 +3064,26 @@
         if (forumServerConfig.useServer) {
           return this.request("login", {method:"POST", body:JSON.stringify(credentials)});
         }
-        const username = String(credentials.username || "").trim().toLowerCase().replace(/\s+/g, "_").slice(0, 24);
+        const username = normalizeForumUsername(credentials.username);
         const displayName = String(credentials.displayName || credentials.username || "论坛用户").trim().slice(0, 24);
-        if (!username || String(credentials.password || "").length < 3) {
+        const password = String(credentials.password || "");
+        if (!username || password.length < 3) {
           throw new Error("invalid_login");
         }
-        return {user:{id:`user-${username}`, username, displayName}};
+        const passwordHash = await hashForumPassword(password);
+        const users = readForumLocalUsers();
+        let user = users.find(item => item.username === username);
+        if (user && user.passwordHash !== passwordHash) {
+          throw new Error("wrong_password");
+        }
+        if (!user) {
+          user = {id:`user-${username}`, username, displayName, passwordHash, avatarUrl:"", createdAt:nowLabel()};
+          users.push(user);
+        } else if (displayName && user.displayName !== displayName) {
+          user.displayName = displayName;
+        }
+        saveForumLocalUsers(users);
+        return {user:{id:user.id, username:user.username, displayName:user.displayName, avatarUrl:user.avatarUrl || ""}};
       },
       async likePost(postId, posts){
         if (forumServerConfig.useServer) {
@@ -2964,20 +3123,24 @@
         }
         return this.savePosts(posts.map(post => post.id === postId ? {...post, replies:[...post.replies, reply]} : post));
       },
-      async deleteReply(postId, replyId, posts){
+      async deleteReply(postId, replyId, posts, adminToken = ""){
         if (forumServerConfig.useServer) {
           const endpointPath = forumServerConfig.endpoints.deleteReply
             .replace(":id", encodeURIComponent(postId))
             .replace(":replyId", encodeURIComponent(replyId));
-          const response = await fetch(`${forumServerConfig.baseUrl}${endpointPath}`, {method:"DELETE"});
+          const response = await fetch(`${forumServerConfig.baseUrl}${endpointPath}`, {
+            method:"DELETE",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({userId:getForumUserId(), adminToken})
+          });
           if (!response.ok) throw new Error("Forum API deleteReply failed");
           return normalizeForumPosts(await response.json());
         }
         return this.savePosts(posts.map(post => post.id === postId ? {...post, replies:post.replies.filter(reply => reply.id !== replyId)} : post));
       },
-      async deletePost(postId, posts){
+      async deletePost(postId, posts, adminToken = "local-demo-admin-token"){
         if (forumServerConfig.useServer) {
-          return normalizeForumPosts(await this.request("delete", {method:"DELETE", body:JSON.stringify({userId:getForumUserId(), adminToken:"local-demo-admin-token"})}, postId));
+          return normalizeForumPosts(await this.request("delete", {method:"DELETE", body:JSON.stringify({userId:getForumUserId(), adminToken})}, postId));
         }
         return this.savePosts(posts.filter(post => post.id !== postId));
       },
@@ -3044,6 +3207,13 @@
         if (session && session.id === userId) {
           saveForumSession({...session, ...profile});
         }
+        const users = readForumLocalUsers();
+        const user = users.find(item => item.id === userId);
+        if (user) {
+          if (typeof profile.displayName === "string" && profile.displayName.trim()) user.displayName = profile.displayName.trim().slice(0, 24);
+          if (typeof profile.avatarUrl === "string") user.avatarUrl = profile.avatarUrl;
+          saveForumLocalUsers(users);
+        }
         const updatedPosts = normalizeForumPosts(posts).map(post => {
           const nextPost = post.ownerId === userId ? {...post, authorAvatar:profile.avatarUrl || ""} : post;
           return {
@@ -3061,7 +3231,11 @@
         return this.request("upload", {method:"POST", headers:{}, body:formData});
       },
       async adminLogin(credentials){
-        return this.request("adminLogin", {method:"POST", body:JSON.stringify(credentials)});
+        if (forumServerConfig.useServer) {
+          return this.request("adminLogin", {method:"POST", body:JSON.stringify(credentials)});
+        }
+        if (String(credentials.answer || "").trim() !== "猫娘") throw new Error("wrong_admin_answer");
+        return {token:"local-demo-admin-token", role:"admin"};
       },
       async listReports(){
         return this.request("reports");
@@ -3272,7 +3446,7 @@
               ${post.ownerId === forumUserId ? `<button class="forum-btn secondary" type="button" data-action="delete-own">删除我的帖子</button>` : ""}
             </div>
             <div class="reply-list">
-              ${post.replies.map(reply => `<div class="reply"><div class="reply-author-row">${renderAvatar(reply.author, reply.avatarUrl || currentUserAvatar(reply.ownerId))}<div><strong>${escapeHtml(reply.author)}</strong> · <small>${escapeHtml(reply.createdAt)}</small><br>${renderForumText(reply.content)}</div></div></div>`).join("")}
+              ${post.replies.map(reply => `<div class="reply" data-reply-id="${escapeHtml(reply.id)}"><div class="reply-author-row">${renderAvatar(reply.author, reply.avatarUrl || currentUserAvatar(reply.ownerId))}<div><strong>${escapeHtml(reply.author)}</strong> · <small>${escapeHtml(reply.createdAt)}</small><br>${renderForumText(reply.content)}${reply.ownerId === forumUserId ? `<div class="forum-toolbar"><button class="forum-btn light" type="button" data-action="delete-reply" data-reply-id="${escapeHtml(reply.id)}">撤回回复</button></div>` : ""}</div></div></div>`).join("")}
             </div>
             <form class="reply-box" data-action="reply">
               <label>回复内容</label>
@@ -3340,7 +3514,7 @@
         if (!postEl || !action) return;
         const post = posts.find(item => item.id === postEl.dataset.id);
         if (!post) return;
-        if (!forumSession && ["like","favorite","report","delete-own","upload"].includes(action)) {
+        if (!forumSession && ["like","favorite","report","delete-own","delete-reply","upload"].includes(action)) {
           setStatus("请先登录再操作。");
           return;
         }
@@ -3380,6 +3554,17 @@
           posts = await forumApi.deleteOwnPost(post.id, posts);
           renderPosts();
           setStatus("帖子已删除。");
+        }
+        if (action === "delete-reply") {
+          const replyId = event.target.dataset.replyId;
+          const reply = post.replies.find(item => item.id === replyId);
+          if (!reply || reply.ownerId !== forumUserId) {
+            setStatus("只能撤回自己发布的回复。");
+            return;
+          }
+          posts = await forumApi.deleteReply(post.id, replyId, posts);
+          renderPosts();
+          setStatus("回复已撤回。");
         }
         if (action === "upload") {
           setStatus("图片服务暂时不可用，请稍后再试。");
@@ -3623,18 +3808,58 @@
 
     async function initAdmin(){
       if (pageKey !== "admin") return;
+      const authCard = document.getElementById("admin-auth-card");
+      const authForm = document.getElementById("admin-auth-form");
+      const authAnswer = document.getElementById("admin-auth-answer");
+      const secureArea = document.getElementById("admin-secure-area");
       const stats = document.getElementById("admin-stats");
       const list = document.getElementById("admin-list");
+      const repliesBoard = document.getElementById("admin-replies-board");
       const status = document.getElementById("admin-status");
       const exportButton = document.getElementById("admin-export");
       const resetReportsButton = document.getElementById("admin-reset-reports");
       const restoreButton = document.getElementById("admin-restore-demo");
+      const lockButton = document.getElementById("admin-lock");
       const setStatus = message => {
         status.textContent = message;
         clearTimeout(initAdmin.statusTimer);
         initAdmin.statusTimer = setTimeout(()=>{ status.textContent = ""; }, 2600);
       };
+      let adminSession = null;
       let posts = await forumApi.listPosts();
+
+      try {
+        adminSession = JSON.parse(sessionStorage.getItem(forumAdminSessionKey)) || null;
+      } catch {
+        adminSession = null;
+      }
+
+      function renderGate(){
+        const unlocked = Boolean(adminSession && adminSession.token);
+        authCard.style.display = unlocked ? "none" : "grid";
+        secureArea.classList.toggle("is-locked", !unlocked);
+        if (unlocked) renderAdmin();
+      }
+
+      const idList = values => values.length ? values.map(value => `<span>${escapeHtml(value)}</span>`).join("") : `<span>暂无</span>`;
+
+      function allReplies(){
+        return posts.flatMap(post => post.replies.map(reply => ({...reply, postId:post.id, postTitle:post.title, postAuthor:post.author})));
+      }
+
+      function renderAllReplies(){
+        const replies = allReplies();
+        repliesBoard.innerHTML = replies.length ? replies.map(reply => `
+          <div class="admin-reply" data-id="${escapeHtml(reply.postId)}" data-reply-id="${escapeHtml(reply.id)}">
+            <div>
+              <strong>${escapeHtml(reply.author)}</strong> · <small>${escapeHtml(reply.createdAt)}</small>
+              <p>所属帖子：${escapeHtml(reply.postTitle)} · 帖子作者：${escapeHtml(reply.postAuthor)}</p>
+              <p>${renderForumText(reply.content)}</p>
+            </div>
+            <button class="forum-btn light" type="button" data-action="delete-reply-global" data-reply-id="${escapeHtml(reply.id)}">删除回复</button>
+          </div>
+        `).join("") : `<div class="empty-forum">目前没有任何回复。</div>`;
+      }
 
       function renderAdmin(){
         const replyCount = posts.reduce((sum, post) => sum + post.replies.length, 0);
@@ -3644,6 +3869,7 @@
           <div class="admin-card"><strong>${replyCount}</strong><span>回复总数</span></div>
           <div class="admin-card"><strong>${reportCount}</strong><span>投诉总数</span></div>
         `;
+        renderAllReplies();
         if (!posts.length) {
           list.innerHTML = `<div class="empty-forum">后台暂无帖子数据。</div>`;
           return;
@@ -3652,34 +3878,100 @@
           <article class="admin-item" data-id="${post.id}">
             <h3>${escapeHtml(post.title)}</h3>
             <p>作者：${escapeHtml(post.author)} · ${escapeHtml(post.createdAt)} · 点赞 ${post.likes} · 投诉 ${post.reportedBy.length}/6 · 回复 ${post.replies.length}</p>
-            <p>${renderForumText(post.content)}</p>
             <div class="forum-toolbar">
+              <button class="forum-btn light" type="button" data-action="toggle-detail">查看详情</button>
               <button class="forum-btn light" type="button" data-action="clear-report">清空本帖投诉</button>
               <button class="forum-btn secondary" type="button" data-action="delete">删除帖子</button>
+            </div>
+            <div class="admin-detail" hidden>
+              <h4>帖子正文</h4>
+              <p>${renderForumText(post.content)}</p>
+              <h4>互动记录</h4>
+              <div class="profile-like-list">
+                <span>点赞 ${post.likedBy.length}</span>
+                <span>收藏 ${post.favoritedBy.length}</span>
+                <span>投诉 ${post.reportedBy.length}</span>
+              </div>
+              <h4>点赞账号</h4>
+              <div class="profile-like-list">${idList(post.likedBy)}</div>
+              <h4>收藏账号</h4>
+              <div class="profile-like-list">${idList(post.favoritedBy)}</div>
+              <h4>投诉账号</h4>
+              <div class="profile-like-list">${idList(post.reportedBy)}</div>
+              <h4>回复管理</h4>
+              ${post.replies.length ? post.replies.map(reply => `
+                <div class="admin-reply" data-reply-id="${escapeHtml(reply.id)}">
+                  <div><strong>${escapeHtml(reply.author)}</strong> · <small>${escapeHtml(reply.createdAt)}</small><br>${renderForumText(reply.content)}</div>
+                  <button class="forum-btn light" type="button" data-action="delete-reply" data-reply-id="${escapeHtml(reply.id)}">删除回复</button>
+                </div>
+              `).join("") : `<div class="empty-forum">这条帖子暂无回复。</div>`}
             </div>
           </article>
         `).join("");
       }
 
+      authForm.addEventListener("submit", async event => {
+        event.preventDefault();
+        try {
+          const result = await forumApi.adminLogin({answer:authAnswer.value.trim()});
+          adminSession = result;
+          sessionStorage.setItem(forumAdminSessionKey, JSON.stringify(result));
+          authForm.reset();
+          renderGate();
+          setStatus("认证成功，已进入后台。");
+        } catch (error) {
+          console.error(error);
+          setStatus("认证失败，答案不正确。");
+        }
+      });
+
       list.addEventListener("click", async event => {
         const item = event.target.closest(".admin-item");
         const action = event.target.dataset.action;
         if (!item || !action) return;
+        if (!adminSession || !adminSession.token) {
+          setStatus("请先通过后台认证。");
+          return;
+        }
         const post = posts.find(value => value.id === item.dataset.id);
         if (!post) return;
+        if (action === "toggle-detail") {
+          const detail = item.querySelector(".admin-detail");
+          if (detail) detail.hidden = !detail.hidden;
+          event.target.textContent = detail && !detail.hidden ? "收起详情" : "查看详情";
+        }
         if (action === "clear-report") {
           posts = await forumApi.clearPostReports(post.id, posts);
           renderAdmin();
           setStatus("已清空这条帖子的投诉记录。");
         }
         if (action === "delete") {
-          posts = await forumApi.deletePost(post.id, posts);
+          posts = await forumApi.deletePost(post.id, posts, adminSession.token);
           renderAdmin();
           setStatus("帖子已删除。");
         }
+        if (action === "delete-reply") {
+          posts = await forumApi.deleteReply(post.id, event.target.dataset.replyId, posts, adminSession.token);
+          renderAdmin();
+          setStatus("回复已删除。");
+        }
+      });
+
+      repliesBoard.addEventListener("click", async event => {
+        const item = event.target.closest(".admin-reply");
+        const action = event.target.dataset.action;
+        if (!item || action !== "delete-reply-global") return;
+        if (!adminSession || !adminSession.token) {
+          setStatus("请先通过后台认证。");
+          return;
+        }
+        posts = await forumApi.deleteReply(item.dataset.id, event.target.dataset.replyId, posts, adminSession.token);
+        renderAdmin();
+        setStatus("回复已删除。");
       });
 
       exportButton.addEventListener("click", () => {
+        if (!adminSession || !adminSession.token) return setStatus("请先通过后台认证。");
         const blob = new Blob([JSON.stringify(posts, null, 2)], {type:"application/json"});
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -3691,18 +3983,27 @@
       });
 
       resetReportsButton.addEventListener("click", async () => {
+        if (!adminSession || !adminSession.token) return setStatus("请先通过后台认证。");
         posts = await forumApi.clearAllReports(posts);
         renderAdmin();
         setStatus("所有投诉记录已清空。");
       });
 
       restoreButton.addEventListener("click", async () => {
+        if (!adminSession || !adminSession.token) return setStatus("请先通过后台认证。");
         posts = await forumApi.restoreDemo();
         renderAdmin();
         setStatus("已恢复示例帖子。");
       });
 
-      renderAdmin();
+      lockButton.addEventListener("click", () => {
+        adminSession = null;
+        sessionStorage.removeItem(forumAdminSessionKey);
+        renderGate();
+        setStatus("已退出后台。");
+      });
+
+      renderGate();
     }
 
     initAdmin();

@@ -470,10 +470,20 @@ async function handleApi(req, res, url){
 
   const deleteReplyMatch = url.pathname.match(/^\/api\/forum\/posts\/([^/]+)\/replies\/([^/]+)$/);
   if (deleteReplyMatch && req.method === "DELETE") {
+    const body = await readBody(req);
     const postId = decodeURIComponent(deleteReplyMatch[1]);
     const replyId = decodeURIComponent(deleteReplyMatch[2]);
-    const posts = readPosts().map(post => post.id === postId ? {...post, replies:post.replies.filter(reply => reply.id !== replyId)} : post);
-    return sendJson(res, 200, {posts:savePosts(posts)});
+    const posts = readPosts();
+    const post = posts.find(item => item.id === postId);
+    if (!post) return sendJson(res, 404, {error:"post_not_found"});
+    const reply = post.replies.find(item => item.id === replyId);
+    if (!reply) return sendJson(res, 404, {error:"reply_not_found"});
+    const canDelete = body.adminToken === "local-demo-admin-token"
+      || (reply.ownerId && reply.ownerId === body.userId)
+      || (post.ownerId && post.ownerId === body.userId);
+    if (!canDelete) return sendJson(res, 403, {error:"not_reply_owner"});
+    const nextPosts = posts.map(item => item.id === postId ? {...item, replies:item.replies.filter(itemReply => itemReply.id !== replyId)} : item);
+    return sendJson(res, 200, {posts:savePosts(nextPosts)});
   }
 
   const deletePostMatch = url.pathname.match(/^\/api\/forum\/posts\/([^/]+)$/);
@@ -522,6 +532,10 @@ async function handleApi(req, res, url){
     return sendJson(res, 503, {error:"upload_unavailable", message:"图片服务暂时不可用，请稍后再试。"});
   }
   if (url.pathname === "/api/forum/admin/login" && req.method === "POST") {
+    const body = await readBody(req);
+    if (String(body.answer || "").trim() !== "猫娘") {
+      return sendJson(res, 403, {error:"wrong_admin_answer", message:"后台认证答案不正确。"});
+    }
     return sendJson(res, 200, {token:"local-demo-admin-token", role:"admin"});
   }
 
